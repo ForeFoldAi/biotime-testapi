@@ -1,0 +1,25 @@
+{
+  "name": "employee-attendance-ot-system",
+  "version": "1.0.0",
+  "description": "Employee Attendance and Overtime Calculation System",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js"
+  },
+  "keywords": [
+    "attendance",
+    "overtime",
+    "express",
+    "biotime"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.9.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "multer": "^2.0.2",
+    "xlsx": "^0.18.5"
+  }
+}

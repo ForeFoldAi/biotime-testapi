@@ -1,0 +1,5 @@
+[
+  { "employee_id": "101", "week_off": "SUNDAY" },
+  { "employee_id": "102", "week_off": "FRIDAY" },
+  { "employee_id": "103", "week_off": "SATURDAY" }
+]

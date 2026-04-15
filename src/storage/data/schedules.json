@@ -1,0 +1,5 @@
+[
+  { "employee_id": "101", "date": "2026-04-01", "shift": "G" },
+  { "employee_id": "102", "date": "2026-04-01", "shift": "A" },
+  { "employee_id": "103", "date": "2026-04-01", "shift": "A4" }
+]

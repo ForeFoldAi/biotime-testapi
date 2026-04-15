@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Attendance & OT Dashboard</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        color: #1f2937;
+        background: #f9fafb;
+      }
+      .container {
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+      .grid {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        margin-bottom: 20px;
+      }
+      .card {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 12px;
+        background: #ffffff;
+      }
+      input,
+      button {
+        padding: 8px;
+        margin: 4px 0;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+      }
+      button {
+        cursor: pointer;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+      th,
+      td {
+        border: 1px solid #ddd;
+        padding: 6px;
+        text-align: center;
+        white-space: nowrap;
+      }
+      th {
+        background: #f3f4f6;
+      }
+      .status {
+        margin-bottom: 8px;
+      }
+      .hidden {
+        display: none;
+      }
+      .login-wrap {
+        min-height: 85vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .login-card {
+        width: 100%;
+        max-width: 460px;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 24px;
+        background: #ffffff;
+        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06);
+      }
+      .meta {
+        color: #6b7280;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loginSection" class="login-wrap">
+      <div class="login-card">
+        <h2>BioTime Login</h2>
+        <p class="meta">Enter email, password, and company domain (example: auinfocity.itimedev.minervaiot.com)</p>
+        <label>Email ID:</label>
+        <input type="email" id="loginEmail" placeholder="name@company.com" />
+        <label>Password:</label>
+        <input type="password" id="loginPassword" placeholder="********" />
+        <label>Company:</label>
+        <input
+          type="text"
+          id="loginCompany"
+          placeholder="auinfocity.itimedev.minervaiot.com"
+          value="auinfocity.itimedev.minervaiot.com"
+        />
+        <button id="loginBtn">Login</button>
+        <p class="status" id="loginStatus">Please login to continue.</p>
+      </div>
+    </div>
+
+    <div id="dashboardSection" class="container hidden">
+      <h2>Employee Attendance & OT</h2>
+      <p class="status" id="status">Ready</p>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Generate Monthly Report</h3>
+          <label>Month:</label><br />
+          <input type="number" id="month" min="1" max="12" /><br />
+          <label>Year:</label><br />
+          <input type="number" id="year" min="2000" /><br />
+          <button id="generateBtn">Generate Report</button>
+          <button id="loadLastBtn">Load Last Report</button>
+        </div>
+
+        <div class="card">
+          <h3>Upload Excel Masters</h3>
+          <div>
+            <label>Shift Master:</label>
+            <input type="file" id="shiftFile" />
+            <button onclick="uploadFile('/upload/shifts', 'shiftFile')">Upload</button>
+          </div>
+          <div>
+            <label>Week Offs:</label>
+            <input type="file" id="weekoffFile" />
+            <button onclick="uploadFile('/upload/weekoffs', 'weekoffFile')">Upload</button>
+          </div>
+          <div>
+            <label>Schedules:</label>
+            <input type="file" id="scheduleFile" />
+            <button onclick="uploadFile('/upload/schedules', 'scheduleFile')">Upload</button>
+          </div>
+          <div>
+            <label>Timetables:</label>
+            <input type="file" id="timetableFile" />
+            <button onclick="uploadFile('/upload/timetables', 'timetableFile')">Upload</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Fetch Raw API Data</h3>
+          <p class="meta">Pull all details directly from BioTime APIs.</p>
+          <button id="fetchEmployeesBtn">Employees</button>
+          <button id="fetchDepartmentsBtn">Departments</button>
+          <button id="fetchTransactionsBtn">Transactions</button>
+          <button id="fetchAllBtn">All Data</button>
+          <button id="attendanceTableBtn">Attendance Table View</button>
+        </div>
+      </div>
+
+      <div id="tableContainer"></div>
+      <div id="jsonContainer" class="card hidden" style="margin-top: 12px"></div>
+    </div>
+
+    <script>
+      const loginSection = document.getElementById("loginSection");
+      const dashboardSection = document.getElementById("dashboardSection");
+      const loginStatusEl = document.getElementById("loginStatus");
+      const loginEmailEl = document.getElementById("loginEmail");
+      const loginPasswordEl = document.getElementById("loginPassword");
+      const loginCompanyEl = document.getElementById("loginCompany");
+
+      function setLoginStatus(text) {
+        loginStatusEl.textContent = text;
+      }
+
+      function showDashboard() {
+        loginSection.classList.add("hidden");
+        dashboardSection.classList.remove("hidden");
+      }
+
+      document.getElementById("loginBtn").addEventListener("click", async () => {
+        const email = loginEmailEl.value.trim();
+        const password = loginPasswordEl.value;
+        const company = loginCompanyEl.value.trim();
+
+        if (!email || !password || !company) {
+          setLoginStatus("Email, password, and company are required.");
+          return;
+        }
+
+        try {
+          setLoginStatus("Logging in...");
+          const res = await fetch("/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password, company }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || "Invalid email or password.");
+          setLoginStatus("Login successful.");
+          showDashboard();
+        } catch (error) {
+          setLoginStatus(error.message || "Invalid email or password.");
+        }
+      });
+
+      const statusEl = document.getElementById("status");
+      const jsonContainer = document.getElementById("jsonContainer");
+      const monthEl = document.getElementById("month");
+      const yearEl = document.getElementById("year");
+      const today = new Date();
+      monthEl.value = today.getMonth() + 1;
+      yearEl.value = today.getFullYear();
+
+      document.getElementById("generateBtn").addEventListener("click", async () => {
+        try {
+          setStatus("Generating report...");
+          const month = monthEl.value;
+          const year = yearEl.value;
+          const res = await fetch(`/report?month=${month}&year=${year}`);
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || "Failed to generate report");
+          renderReport(data.report);
+          setStatus("Report generated from BioTime API.");
+        } catch (error) {
+          setStatus(`Error: ${error.message}`);
+        }
+      });
+
+      document.getElementById("loadLastBtn").addEventListener("click", async () => {
+        try {
+          setStatus("Loading last report...");
+          const res = await fetch("/report/last");
+          const data = await res.json();
+          renderReport(data);
+          setStatus("Loaded last report.");
+        } catch (error) {
+          setStatus(`Error: ${error.message}`);
+        }
+      });
+
+      document.getElementById("fetchEmployeesBtn").addEventListener("click", async () => {
+        await fetchAndRenderRaw("/api/data/employees", "Employees");
+      });
+
+      document.getElementById("fetchDepartmentsBtn").addEventListener("click", async () => {
+        await fetchAndRenderRaw("/api/data/departments", "Departments");
+      });
+
+      document.getElementById("fetchTransactionsBtn").addEventListener("click", async () => {
+        const month = monthEl.value;
+        const year = yearEl.value;
+        await fetchAndRenderRaw(
+          `/api/data/transactions?month=${month}&year=${year}`,
+          "Transactions"
+        );
+      });
+
+      document.getElementById("fetchAllBtn").addEventListener("click", async () => {
+        const month = monthEl.value;
+        const year = yearEl.value;
+        await fetchAndRenderRaw(`/api/data/all?month=${month}&year=${year}`, "All API Data");
+      });
+
+      document.getElementById("attendanceTableBtn").addEventListener("click", async () => {
+        const month = monthEl.value;
+        const year = yearEl.value;
+        await fetchAndRenderAttendanceTable(month, year);
+      });
+
+      function setStatus(text) {
+        statusEl.textContent = text;
+      }
+
+      async function fetchAndRenderRaw(url, label) {
+        try {
+          setStatus(`Fetching ${label} from API...`);
+          const res = await fetch(url);
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || `Failed to fetch ${label}`);
+          renderRawJson(label, data);
+          setStatus(`${label} loaded successfully from API.`);
+        } catch (error) {
+          setStatus(`Error: ${error.message}`);
+        }
+      }
+
+      function renderRawJson(title, data) {
+        jsonContainer.classList.remove("hidden");
+        jsonContainer.innerHTML = `
+          <h3>${title}</h3>
+          <pre style="white-space: pre-wrap; font-size: 12px; margin: 0;">${escapeHtml(
+            JSON.stringify(data, null, 2)
+          )}</pre>
+        `;
+      }
+
+      async function fetchAndRenderAttendanceTable(month, year) {
+        try {
+          setStatus("Fetching attendance table...");
+          const res = await fetch(`/api/table/attendance?month=${month}&year=${year}`);
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || "Failed to fetch attendance table");
+          renderDepartmentTables(
+            `Employee Attendance Table (${month}/${year})`,
+            data.rows || []
+          );
+          setStatus(`Attendance table loaded with ${data.total_rows || 0} rows.`);
+        } catch (error) {
+          setStatus(`Error: ${error.message}`);
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;");
+      }
+
+      function formatCellValue(column, value) {
+        if (value === null || value === undefined) return "";
+        if (column !== "check_in" && column !== "check_out") return String(value);
+
+        const text = String(value).trim();
+        const match = text.match(/(\d{2}:\d{2}(:\d{2})?)/);
+        return match ? match[1] : text;
+      }
+
+      async function uploadFile(endpoint, inputId) {
+        const input = document.getElementById(inputId);
+        if (!input.files[0]) {
+          setStatus("Please choose a file first.");
+          return;
+        }
+
+        const fd = new FormData();
+        fd.append("file", input.files[0]);
+
+        try {
+          setStatus(`Uploading to ${endpoint}...`);
+          const res = await fetch(endpoint, { method: "POST", body: fd });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.message || "Upload failed");
+          setStatus(data.message || "Upload successful.");
+        } catch (error) {
+          setStatus(`Error: ${error.message}`);
+        }
+      }
+
+      function renderReport(report) {
+        if (!report || !Array.isArray(report.rows)) {
+          document.getElementById("tableContainer").innerHTML = "<p>No report data found.</p>";
+          return;
+        }
+        renderRowsTable(`Generated Report (${report.month}/${report.year})`, report.rows);
+      }
+
+      function renderRowsTable(title, rows) {
+        if (!Array.isArray(rows) || rows.length === 0) {
+          document.getElementById("tableContainer").innerHTML = "<p>No rows found.</p>";
+          return;
+        }
+        const columns = Object.keys(rows[0]);
+        const header = `<tr>${columns.map((c) => `<th>${c}</th>`).join("")}</tr>`;
+        const body = rows
+          .map(
+            (row) =>
+              `<tr>${columns
+                .map((c) => `<td>${escapeHtml(formatCellValue(c, row[c]))}</td>`)
+                .join("")}</tr>`
+          )
+          .join("");
+
+        document.getElementById("tableContainer").innerHTML = `
+          <h3>${title}</h3>
+          <div style="overflow-x:auto;">
+            <table>${header}${body}</table>
+          </div>
+        `;
+      }
+
+      function renderDepartmentTables(title, rows) {
+        if (!Array.isArray(rows) || rows.length === 0) {
+          document.getElementById("tableContainer").innerHTML = "<p>No rows found.</p>";
+          return;
+        }
+
+        const columns = Object.keys(rows[0]);
+        const groupedByDepartment = rows.reduce((acc, row) => {
+          const department = row.department || "UNASSIGNED";
+          if (!acc[department]) acc[department] = [];
+          acc[department].push(row);
+          return acc;
+        }, {});
+
+        const departmentSections = Object.entries(groupedByDepartment)
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([department, departmentRows]) => {
+            const groupedByPosition = departmentRows.reduce((acc, row) => {
+              const position = row.position || "UNASSIGNED";
+              if (!acc[position]) acc[position] = [];
+              acc[position].push(row);
+              return acc;
+            }, {});
+
+            const header = `<tr>${columns.map((c) => `<th>${c}</th>`).join("")}</tr>`;
+            const body = Object.entries(groupedByPosition)
+              .sort((a, b) => a[0].localeCompare(b[0]))
+              .map(([position, positionRows]) => {
+                const positionHeader = `
+                  <tr>
+                    <td colspan="${columns.length}" style="text-align:left; font-weight:700; background:#eef2ff;">
+                      Position: ${escapeHtml(position)}
+                    </td>
+                  </tr>
+                `;
+                const positionBody = positionRows
+                  .sort((a, b) => {
+                    if ((a.employee_code || "") === (b.employee_code || "")) {
+                      return String(a.date || "").localeCompare(String(b.date || ""));
+                    }
+                    return String(a.employee_code || "").localeCompare(String(b.employee_code || ""));
+                  })
+                  .map(
+                    (row) =>
+                      `<tr>${columns
+                        .map((c) => `<td>${escapeHtml(formatCellValue(c, row[c]))}</td>`)
+                        .join("")}</tr>`
+                  )
+                  .join("");
+                return `${positionHeader}${positionBody}`;
+              })
+              .join("");
+
+            return `
+              <div class="card" style="margin-top:12px;">
+                <h3>Department: ${escapeHtml(department)}</h3>
+                <div style="overflow-x:auto;">
+                  <table>${header}${body}</table>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+
+        document.getElementById("tableContainer").innerHTML = `
+          <h3>${title}</h3>
+          ${departmentSections}
+        `;
+      }
+    </script>
+  </body>
+</html>
