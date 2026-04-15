@@ -32,16 +32,32 @@ function parseDateRange(query) {
 }
 
 function toDateOnly(value) {
+  if (typeof value === "number") {
+    // Excel date serial fallback
+    const excelEpoch = new Date(Date.UTC(1899, 11, 30));
+    const millis = Number(value) * 24 * 60 * 60 * 1000;
+    const date = new Date(excelEpoch.getTime() + millis);
+    if (!Number.isNaN(date.getTime())) {
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    }
+  }
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function normalizeEmployeeCode(value) {
+  return String(value || "").trim().toUpperCase();
 }
 
 function buildTaggedShiftLookup() {
   try {
     const shiftRows = runtimeStore.getShiftExportRows();
     const timetableRows = runtimeStore.getTimetableExportRows();
-    const employeeScheduleRows = runtimeStore.getEmployeeScheduleExportRows();
+    const employeeScheduleRows =
+      runtimeStore.getEmployeeScheduleExportRows().length > 0
+        ? runtimeStore.getEmployeeScheduleExportRows()
+        : runtimeStore.getSchedules();
 
     const shiftToTimetable = new Map();
     for (const row of shiftRows) {
@@ -63,8 +79,10 @@ function buildTaggedShiftLookup() {
 
     const employeeSchedules = [];
     for (const row of employeeScheduleRows) {
-      const employeeCode = String(row.employee_id || "").trim();
-      const shiftName = String(row.shift_name || "").trim();
+      const employeeCode = normalizeEmployeeCode(
+        row.employee_id || row.emp_code || row.employee_code || row.id || ""
+      );
+      const shiftName = String(row.shift_name || row.shift || row.shift_code || "").trim();
       const startDate = toDateOnly(row.start_date);
       const endDate = toDateOnly(row.end_date);
       if (!employeeCode || !shiftName || !startDate || !endDate) continue;
@@ -90,10 +108,11 @@ function buildTaggedShiftLookup() {
 function getTaggedShiftForDate(employeeCode, dateStr, employeeSchedules) {
   const date = toDateOnly(dateStr);
   if (!employeeCode || !date) return { employeeShiftName: "", originalShiftTimings: "" };
+  const normalizedCode = normalizeEmployeeCode(employeeCode);
 
   const match = employeeSchedules.find((item) => {
     return (
-      String(item.employeeCode) === String(employeeCode) &&
+      normalizeEmployeeCode(item.employeeCode) === normalizedCode &&
       date.getTime() >= item.startDate.getTime() &&
       date.getTime() <= item.endDate.getTime()
     );

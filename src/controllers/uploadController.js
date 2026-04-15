@@ -23,12 +23,52 @@ function normalizeShiftRows(rows) {
   }, {});
 }
 
+function normalizeHeader(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+}
+
+function remapRowsUsingFirstRowAsHeader(rows = []) {
+  if (!Array.isArray(rows) || rows.length === 0) return [];
+
+  const first = rows[0];
+  const firstKeys = Object.keys(first);
+  const hasGenericColumns = firstKeys.some((key) => key.startsWith("__empty"));
+  if (!hasGenericColumns) return rows;
+
+  const headerMap = {};
+  firstKeys.forEach((key) => {
+    headerMap[key] = normalizeHeader(first[key]);
+  });
+
+  const remapped = rows
+    .slice(1)
+    .map((row) => {
+      const out = {};
+      firstKeys.forEach((key) => {
+        const target = headerMap[key];
+        if (!target) return;
+        out[target] = row[key];
+      });
+      return out;
+    })
+    .filter((row) => Object.values(row).some((value) => String(value || "").trim() !== ""));
+
+  return remapped.length > 0 ? remapped : rows;
+}
+
+function normalizeUploadedRows(rawRows = []) {
+  return remapRowsUsingFirstRowAsHeader(rawRows);
+}
+
 function isShiftExportRows(rows) {
   return rows.some((row) => row.shift_name && row.timetable);
 }
 
 function isTimetableExportRows(rows) {
-  return rows.some((row) => row.name && (row.check_in || row["check-in"]));
+  return rows.some((row) => row.name && (row.check_in || row["check-in"] || row.check_out || row["check-out"]));
 }
 
 function isEmployeeScheduleExportRows(rows) {
@@ -37,7 +77,7 @@ function isEmployeeScheduleExportRows(rows) {
 
 async function uploadShifts(req, res, next) {
   try {
-    const rows = parseExcelBuffer(req.file.buffer);
+    const rows = normalizeUploadedRows(parseExcelBuffer(req.file.buffer));
     const responseMeta = { totalRows: rows.length };
 
     if (isShiftExportRows(rows)) {
@@ -63,7 +103,7 @@ async function uploadShifts(req, res, next) {
 
 async function uploadWeekoffs(req, res, next) {
   try {
-    const rows = parseExcelBuffer(req.file.buffer);
+    const rows = normalizeUploadedRows(parseExcelBuffer(req.file.buffer));
     runtimeStore.setWeekoffs(rows);
     await stores.weekoffs.write(rows);
     res.json({
@@ -77,15 +117,20 @@ async function uploadWeekoffs(req, res, next) {
 
 async function uploadSchedules(req, res, next) {
   try {
-    const rows = parseExcelBuffer(req.file.buffer);
+    const rows = normalizeUploadedRows(parseExcelBuffer(req.file.buffer));
     runtimeStore.setSchedules(rows);
+    let taggedRows = 0;
     if (isEmployeeScheduleExportRows(rows)) {
       runtimeStore.setEmployeeScheduleExportRows(rows);
+      taggedRows = rows.length;
+    } else {
+      runtimeStore.setEmployeeScheduleExportRows([]);
     }
     await stores.schedules.write(rows);
     res.json({
       message: "Employee shift schedule uploaded to in-memory store successfully",
       totalRows: rows.length,
+      taggedRows,
     });
   } catch (error) {
     next(error);
@@ -94,7 +139,7 @@ async function uploadSchedules(req, res, next) {
 
 async function uploadTimetables(req, res, next) {
   try {
-    const rows = parseExcelBuffer(req.file.buffer);
+    const rows = normalizeUploadedRows(parseExcelBuffer(req.file.buffer));
     if (!isTimetableExportRows(rows)) {
       return res.status(400).json({
         message:

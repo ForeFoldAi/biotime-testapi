@@ -1,5 +1,1106 @@
 [
-  { "employee_id": "101", "date": "2026-04-01", "shift": "G" },
-  { "employee_id": "102", "date": "2026-04-01", "shift": "A" },
-  { "employee_id": "103", "date": "2026-04-01", "shift": "A4" }
+  {
+    "employee_id": "CGP59799",
+    "first_name": "B.UPENDRA",
+    "last_name": "",
+    "shift_name": "General Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-12-31"
+  },
+  {
+    "employee_id": "CGP59812",
+    "first_name": "B.VEERAMANI",
+    "last_name": "",
+    "shift_name": "General Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-12-31"
+  },
+  {
+    "employee_id": "CGP60183",
+    "first_name": "GHOUSIYA BEGUM",
+    "last_name": "",
+    "shift_name": "General Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-12-31"
+  },
+  {
+    "employee_id": "CGP78786",
+    "first_name": "MAHABOOB BEE",
+    "last_name": "",
+    "shift_name": "General Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-12-31"
+  },
+  {
+    "employee_id": "CGP82803",
+    "first_name": "M SUSHMA",
+    "last_name": "",
+    "shift_name": "General Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-12-31"
+  },
+  {
+    "employee_id": "CGP90203",
+    "first_name": "K.RAMULAMMA",
+    "last_name": "",
+    "shift_name": "General Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-12-31"
+  },
+  {
+    "employee_id": "CGP92183",
+    "first_name": "BHADAR ALI",
+    "last_name": "",
+    "shift_name": "General Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-12-31"
+  },
+  {
+    "employee_id": "CGP98438",
+    "first_name": "PREMWATI",
+    "last_name": "",
+    "shift_name": "General Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-12-31"
+  },
+  {
+    "employee_id": "DCT28",
+    "first_name": "B.JAIPAL REDDY",
+    "last_name": "",
+    "shift_name": "General Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-12-31"
+  },
+  {
+    "employee_id": "DCT208",
+    "first_name": "T.NAGARAJU",
+    "last_name": "",
+    "shift_name": "MEP-General",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT164",
+    "first_name": "N.LAXMI NARAYANA",
+    "last_name": "",
+    "shift_name": "MEP-A Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT72",
+    "first_name": "G.CHAITANYA KUMAR",
+    "last_name": "",
+    "shift_name": "MEP B Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT75",
+    "first_name": "G.SURENDER",
+    "last_name": "",
+    "shift_name": "MEP C Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT89",
+    "first_name": "K.SRINIVAS",
+    "last_name": "",
+    "shift_name": "MEP-A Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT118",
+    "first_name": "K.MADHU BABU",
+    "last_name": "",
+    "shift_name": "MEP B Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT2",
+    "first_name": "S.M.ALI",
+    "last_name": "",
+    "shift_name": "MEP C Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT281",
+    "first_name": "P SATHISH",
+    "last_name": "",
+    "shift_name": "MEP-A Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT373",
+    "first_name": "L.DILLISWARA RAO",
+    "last_name": "",
+    "shift_name": "MEP-A Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT309",
+    "first_name": "RAJKUMAR CHOWDARY",
+    "last_name": "",
+    "shift_name": "MEP C Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT358",
+    "first_name": "ARBIND KUMAR GUPTA",
+    "last_name": "",
+    "shift_name": "MEP B Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT357",
+    "first_name": "N.MAHESH",
+    "last_name": "",
+    "shift_name": "MEP B Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT344",
+    "first_name": "P NITHIN",
+    "last_name": "",
+    "shift_name": "MEP-General",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT01",
+    "first_name": "MD.KHALEEL",
+    "last_name": "",
+    "shift_name": "MEP C Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT387",
+    "first_name": "JAGANNATH BARIK",
+    "last_name": "",
+    "shift_name": "MEP B Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT388",
+    "first_name": "A DHANUSH",
+    "last_name": "",
+    "shift_name": "MEP C Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT361",
+    "first_name": "L.PRAVEEN",
+    "last_name": "",
+    "shift_name": "MEP-A Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG017278",
+    "first_name": "RAM SINGH BEEKA",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG020034",
+    "first_name": "KVN BHASKAR",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG020036",
+    "first_name": "PANDAB NAYAK",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG020037",
+    "first_name": "RAVINDER TIWARI",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG020043",
+    "first_name": "PANKAJ KUMAR",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG020069",
+    "first_name": "VIVEK PRADHAN",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG020071",
+    "first_name": "JANGDOW DAIMARY",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG020073",
+    "first_name": "NARESH KUMAR NAYAK",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG020074",
+    "first_name": "PRABIN GOGOI",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG020870",
+    "first_name": "M. SURESH",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG022179",
+    "first_name": "DIP JYOTHI DEKA",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG023846",
+    "first_name": "P SRI KEERTHI",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG024417",
+    "first_name": "LAKHIKANTH SINGHA",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG024427",
+    "first_name": "K BHANU PRIYA",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG024922",
+    "first_name": "BHABENDRA NATH BARMAN",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG025226",
+    "first_name": "V HARE RAMA",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG025403",
+    "first_name": "SIDDHANATH PRAJAPATHI",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG026084",
+    "first_name": "MOHIRON HAJONG",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG026116",
+    "first_name": "ROPESH HAJONG",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG027057",
+    "first_name": "M PRAVALLIKA",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG027929",
+    "first_name": "DEEPAK KUMAR",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG028353",
+    "first_name": "CHANDANA HAJONG",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AGO20039",
+    "first_name": "MANAS KUMAR NAIK",
+    "last_name": "",
+    "shift_name": "Sec-A4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT391",
+    "first_name": "V.RAKESH",
+    "last_name": "",
+    "shift_name": "MEP-General",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT392",
+    "first_name": "B.SANTHOSH",
+    "last_name": "",
+    "shift_name": "MEP C Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT168",
+    "first_name": "N.NARAYANA RAO",
+    "last_name": "",
+    "shift_name": "MEP-General",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT384",
+    "first_name": "AKSHAYA KUMAR JENA",
+    "last_name": "",
+    "shift_name": "MEP B Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT350",
+    "first_name": "MUKESH PRADHAN",
+    "last_name": "",
+    "shift_name": "MEP B Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT135",
+    "first_name": "M. AMIYA KUMAR",
+    "last_name": "",
+    "shift_name": "MEP C Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT192",
+    "first_name": "SK.KHAJA PASHA",
+    "last_name": "",
+    "shift_name": "MEP-A Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT07",
+    "first_name": "ANIL KUMAR BARIK",
+    "last_name": "",
+    "shift_name": "MEP B Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT382",
+    "first_name": "ASUTOSH NAYAK",
+    "last_name": "",
+    "shift_name": "MEP C Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT81",
+    "first_name": "JALADHAR PANDA",
+    "last_name": "",
+    "shift_name": "MEP-A Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT374",
+    "first_name": "SHIVA NARAYANA TUMARAM",
+    "last_name": "",
+    "shift_name": "MEP-A Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT320",
+    "first_name": "CH.ANIL KUMAR",
+    "last_name": "",
+    "shift_name": "MEP-A Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT287",
+    "first_name": "P H DANIEL",
+    "last_name": "",
+    "shift_name": "MEP-A Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT390",
+    "first_name": "T.SAI CHARAN CHARY",
+    "last_name": "",
+    "shift_name": "MEP-A Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT375",
+    "first_name": "A.SHARATH CHANDRA",
+    "last_name": "",
+    "shift_name": "MEP B Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT383",
+    "first_name": "MD.ZAHEER KHAN",
+    "last_name": "",
+    "shift_name": "MEP-A Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT295",
+    "first_name": "E.SUBBARAO",
+    "last_name": "",
+    "shift_name": "MEP-General",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT376",
+    "first_name": "G.ANJANEYULU",
+    "last_name": "",
+    "shift_name": "MEP-General",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CG98508",
+    "first_name": "T.SWATHI",
+    "last_name": "",
+    "shift_name": "HK-General",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP59805",
+    "first_name": "P.SHANKAR",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP90899",
+    "first_name": "P. RAJU",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP77012",
+    "first_name": "Y.SRIKANTH",
+    "last_name": "",
+    "shift_name": "HK-C9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP92095",
+    "first_name": "A.VENKATESH",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP89258",
+    "first_name": "AMALOKT PAYENG",
+    "last_name": "",
+    "shift_name": "HK-C9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP70184",
+    "first_name": "B ASHOK KUMAR",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CG89140",
+    "first_name": "BHUPEN PAYENG",
+    "last_name": "",
+    "shift_name": "HK-C9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP86125",
+    "first_name": "D  EESWAR",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP59804",
+    "first_name": "G.ANJANEYULU",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP60822",
+    "first_name": "G.RAJU",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP59807",
+    "first_name": "K.CHINNA BALUDU",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP59811",
+    "first_name": "K.JAI RAM",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP60158",
+    "first_name": "KALYAN NAYAK",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP60161",
+    "first_name": "MUSA MIYYA",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP59798",
+    "first_name": "N.VENKANNA",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP98228",
+    "first_name": "NABIN PAYANG",
+    "last_name": "",
+    "shift_name": "HK-C9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP60179",
+    "first_name": "P BUJJI BABU",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP65408",
+    "first_name": "SHAMSHODIN",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG020044",
+    "first_name": "RAKESH HAZARIKA",
+    "last_name": "",
+    "shift_name": "Sec-C4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG020048",
+    "first_name": "MANOJ KUMAR DAS",
+    "last_name": "",
+    "shift_name": "Sec-C4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG020207",
+    "first_name": "M RAJ KUMAR",
+    "last_name": "",
+    "shift_name": "Sec-C4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG020872",
+    "first_name": "V NAGA LAXMI",
+    "last_name": "",
+    "shift_name": "Sec-C4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG021967",
+    "first_name": "PABITRA NAIK",
+    "last_name": "",
+    "shift_name": "Sec-C4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG024420",
+    "first_name": "P. SATHISH",
+    "last_name": "",
+    "shift_name": "Sec-C4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG025825",
+    "first_name": "DAYANIDHI SAMAL",
+    "last_name": "",
+    "shift_name": "Sec-C4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG025909",
+    "first_name": "T ANUSHA",
+    "last_name": "",
+    "shift_name": "Sec-C4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG027796",
+    "first_name": "G VEERA NAGESH",
+    "last_name": "",
+    "shift_name": "Sec-C4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG028848",
+    "first_name": "M DILIP KUMAR",
+    "last_name": "",
+    "shift_name": "Sec-C4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG028944",
+    "first_name": "PRANJAL GOGOI",
+    "last_name": "",
+    "shift_name": "Sec-C4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG029041",
+    "first_name": "RAHUL KAIBARTTA",
+    "last_name": "",
+    "shift_name": "Sec-C4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP100756",
+    "first_name": "SUNIL NARAH",
+    "last_name": "",
+    "shift_name": "HK-C9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP74219",
+    "first_name": "TIPPANNA",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP61747",
+    "first_name": "V.RAJU",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP79375",
+    "first_name": "A.BHAVANI",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP60182",
+    "first_name": "A.TULASAMMA",
+    "last_name": "",
+    "shift_name": "HK-C9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG017913",
+    "first_name": "LAMBIT CHUTIA",
+    "last_name": "",
+    "shift_name": "Sec-General",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP83383",
+    "first_name": "AMBIKA",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP60174",
+    "first_name": "G.CHANDRAKALA",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP59809",
+    "first_name": "G.INDIRA",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP64496",
+    "first_name": "G.MANGAMMA",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP60821",
+    "first_name": "G.MEENAKSHI",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP59801",
+    "first_name": "G.NAGA LAXMI",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP78621",
+    "first_name": "G.SARASWATHI",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP85395",
+    "first_name": "G.SHOBHAVATHI",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP65410",
+    "first_name": "HABIBA",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP73533",
+    "first_name": "HUSSAIN BEE",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP72590",
+    "first_name": "K.LAXMI",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP60820",
+    "first_name": "M.INDHUMATHI",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP60173",
+    "first_name": "M.MANJULA",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP73724",
+    "first_name": "M.PARVATHI",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP60160",
+    "first_name": "N.LAXMI",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP98595",
+    "first_name": "P SAVITHA",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP100755",
+    "first_name": "P.LAXMI",
+    "last_name": "",
+    "shift_name": "HK-C9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP91588",
+    "first_name": "R VARALAXMI",
+    "last_name": "",
+    "shift_name": "HK-C9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP74218",
+    "first_name": "RAJAMMA",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP102349",
+    "first_name": "RUBI BEGUM",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "27",
+    "first_name": "K HARI",
+    "last_name": "",
+    "shift_name": "Pest Control",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP70227",
+    "first_name": "S.SWAPNA",
+    "last_name": "",
+    "shift_name": "HK-B9",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP59813",
+    "first_name": "SABERA BEGUM",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP60810",
+    "first_name": "SAHEEN BEGUM",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP59810",
+    "first_name": "SHIVANANDA",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "10",
+    "first_name": "G MADDAMMA",
+    "last_name": "",
+    "shift_name": "Landscape",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "66",
+    "first_name": "M NARSAMMA",
+    "last_name": "",
+    "shift_name": "Landscape",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "75",
+    "first_name": "M SAIDAPPA",
+    "last_name": "",
+    "shift_name": "Landscape",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP60180",
+    "first_name": "SK. SAHARA",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP60165",
+    "first_name": "SK.AMEENA BEE",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "AG028846",
+    "first_name": "MANOJ KUMAR PATIKA",
+    "last_name": "",
+    "shift_name": "Sec-C4",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "CGP59814",
+    "first_name": "T.MANGAMMA",
+    "last_name": "",
+    "shift_name": "HK-A6",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "TEST123",
+    "first_name": "Pearl Employee",
+    "last_name": "",
+    "shift_name": "HK-General",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT113",
+    "first_name": "K.THIRUPATHI REDDY",
+    "last_name": "",
+    "shift_name": "MEP B Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  }
 ]
