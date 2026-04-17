@@ -1,5 +1,6 @@
 const { applyRuleForDepartment } = require("../engines/ruleDispatcher");
 const {
+  addDays,
   endOfMonth,
   formatDate,
   hoursBetween,
@@ -10,7 +11,6 @@ const {
   classifyDepartment,
   getBusinessDateForTransaction,
   inferTransactionShiftCodes,
-  normalizeShiftCombination,
 } = require("../utils/shiftUtils");
 
 const WEEKDAY_NAMES = [
@@ -106,6 +106,13 @@ function createEmployeeIndex(employees = []) {
   return index;
 }
 
+function getShiftDefinitionsForDepartment(shiftMaster, department) {
+  if (department === "DRIVER" && Array.isArray(shiftMaster.SECURITY) && shiftMaster.SECURITY.length > 0) {
+    return shiftMaster.SECURITY;
+  }
+  return shiftMaster[department] || shiftMaster.MEP || [];
+}
+
 function createGroupedTransactions(transactions, employeeIndex, shiftMaster, year, month) {
   const grouped = new Map();
   const monthStart = startOfMonth(year, month);
@@ -117,7 +124,7 @@ function createGroupedTransactions(transactions, employeeIndex, shiftMaster, yea
 
     const employee = employeeIndex.get(employeeId);
     const department = employee?.department || "MEP";
-    const shifts = shiftMaster[department] || shiftMaster.MEP || [];
+    const shifts = getShiftDefinitionsForDepartment(shiftMaster, department);
 
     const punchDateValue = getPunchDate(transaction);
     if (!punchDateValue) continue;
@@ -168,6 +175,18 @@ function evaluateWeekOffCode(employeeId, dateObj, groupedTransactions, weeklyOff
   return prevWorked || nextWorked ? "W/O" : "L";
 }
 
+/** MEP/O&M: weekly off only if an adjacent calendar day has strict Present (P) attendance. */
+function evaluateMepWeeklyOffFromAdjacentPresent(dateObj, weeklyOffDay, getAttendanceStatusForDateStr) {
+  const weekday = WEEKDAY_NAMES[dateObj.getDay()];
+  if (!weeklyOffDay || weekday !== weeklyOffDay) return null;
+
+  const prevStr = formatDate(addDays(dateObj, -1));
+  const nextStr = formatDate(addDays(dateObj, 1));
+  const prevP = getAttendanceStatusForDateStr(prevStr) === "P";
+  const nextP = getAttendanceStatusForDateStr(nextStr) === "P";
+  return prevP || nextP ? "W/O" : "L";
+}
+
 function processAttendance({
   employees,
   transactions,
@@ -201,6 +220,30 @@ function processAttendance({
       totals: { presentDays: 0, otHours: 0 },
     };
 
+    const ruleCache = new Map();
+    for (const day of days) {
+      const dateStr = formatDate(new Date(year, month - 1, day));
+      const transactionKey = `${employee.employeeId}|${dateStr}`;
+      const grouped = groupedTransactions.get(transactionKey);
+      if (!grouped || grouped.punches.length === 0) continue;
+
+      const punches = [...grouped.punches].sort((a, b) => a - b);
+      const checkIn = punches[0];
+      const checkOut = punches[punches.length - 1];
+      const workingHours = hoursBetween(checkIn, checkOut);
+      const shiftDefinitions = getShiftDefinitionsForDepartment(shiftMaster, employee.department);
+      const dailyRecord = {
+        employeeId: employee.employeeId,
+        date: dateStr,
+        checkIn,
+        checkOut,
+        workingHours,
+        shiftDefinitions,
+        scheduledShift: scheduleMap.get(transactionKey) || "",
+      };
+      ruleCache.set(transactionKey, applyRuleForDepartment(employee.department, dailyRecord));
+    }
+
     for (const day of days) {
       const dateObj = new Date(year, month - 1, day);
       const dateStr = formatDate(dateObj);
@@ -208,45 +251,37 @@ function processAttendance({
       const grouped = groupedTransactions.get(transactionKey);
 
       if (!grouped || grouped.punches.length === 0) {
-        const weekoffCode =
-          employee.department !== "SECURITY"
-            ? evaluateWeekOffCode(
-                employee.employeeId,
-                dateObj,
-                groupedTransactions,
-                weeklyOffDay
-              )
-            : null;
+        let weekoffCode = null;
+        if (employee.department === "MEP" || employee.department === "HOUSEKEEPING") {
+          weekoffCode = evaluateMepWeeklyOffFromAdjacentPresent(dateObj, weeklyOffDay, (ds) => {
+            const cached = ruleCache.get(`${employee.employeeId}|${ds}`);
+            return cached?.attendanceStatus;
+          });
+        } else if (
+          employee.department !== "SECURITY" &&
+          employee.department !== "DRIVER" &&
+          employee.department !== "LANDSCAPE"
+        ) {
+          weekoffCode = evaluateWeekOffCode(
+            employee.employeeId,
+            dateObj,
+            groupedTransactions,
+            weeklyOffDay
+          );
+        }
 
         row.daily[day] = weekoffCode || "L";
         continue;
       }
 
-      const punches = [...grouped.punches].sort((a, b) => a - b);
-      const checkIn = punches[0];
-      const checkOut = punches[punches.length - 1];
-      const workingHours = hoursBetween(checkIn, checkOut);
-
-      const scheduledShift = scheduleMap.get(transactionKey);
-      const autoDetectedCodes = [...grouped.shiftCodes];
-      const shiftCodes = scheduledShift
-        ? [...new Set([...autoDetectedCodes, scheduledShift])]
-        : autoDetectedCodes;
-
-      const dailyRecord = {
-        employeeId: employee.employeeId,
-        date: dateStr,
-        shiftCodes,
-        detectedCode: normalizeShiftCombination(shiftCodes),
-        checkIn,
-        checkOut,
-        workingHours,
-      };
-
-      const ruleResult = applyRuleForDepartment(employee.department, dailyRecord);
-      row.daily[day] = ruleResult.code || "L";
-      row.totals.presentDays += 1;
-      row.totals.otHours += Number(ruleResult.otHours || 0);
+      const ruleResult = ruleCache.get(transactionKey);
+      row.daily[day] = ruleResult.code || ruleResult.dutyShift || "L";
+      if ((ruleResult.attendanceStatus || "P") === "P") {
+        row.totals.presentDays += 1;
+      }
+      if (ruleResult.otStatus === "YES") {
+        row.totals.otHours += Number(ruleResult.otHours || 0);
+      }
     }
 
     row.totals.otHours = Math.round(row.totals.otHours * 100) / 100;

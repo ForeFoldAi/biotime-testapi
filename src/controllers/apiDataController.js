@@ -2,12 +2,12 @@ const { fetchEmployees } = require("../services/employeeService");
 const { fetchDepartments } = require("../services/departmentService");
 const { fetchTransactions } = require("../services/transactionService");
 const runtimeStore = require("../storage/runtimeStore");
+const { applyRuleForDepartment } = require("../engines/ruleDispatcher");
 const { startOfMonth, endOfMonth, formatDate, hoursBetween } = require("../utils/dateUtils");
 const {
   classifyDepartment,
   getBusinessDateForTransaction,
   inferTransactionShiftCodes,
-  normalizeShiftCombination,
 } = require("../utils/shiftUtils");
 
 function parseDateRange(query) {
@@ -557,7 +557,8 @@ async function getAttendanceTableData(req, res, next) {
       }
 
       const departmentKey = classifyDepartment(employee.department);
-      const shiftDefinitions = shifts[departmentKey] || shifts.MEP || [];
+      const shiftDefinitions =
+        (departmentKey === "DRIVER" && shifts.SECURITY) || shifts[departmentKey] || shifts.MEP || [];
       const businessDate = getBusinessDateForTransaction(punchDate, shiftDefinitions);
 
       const key = `${employeeId}|${businessDate}`;
@@ -593,112 +594,23 @@ async function getAttendanceTableData(req, res, next) {
         bucket.date,
         employeeSchedules
       );
-      const taggedShiftCode = inferShiftCodeFromShiftName(taggedShift.employeeShiftName);
       const departmentKey = classifyDepartment(employee.department);
-      const shiftDefinitions = shifts[departmentKey] || shifts.MEP || [];
-      const defaultTaggedDefinition = getShiftDefinitionByCode(shiftDefinitions, taggedShiftCode);
-      const taggedShiftDefinition = buildShiftDefinitionFromOriginalTimings(
-        taggedShift.originalShiftTimings,
-        defaultTaggedDefinition
-      );
-      const taggedWithinTolerance = isTaggedShiftWithinTolerance({
-        checkIn,
-        checkOut,
-        shiftDefinition: taggedShiftDefinition,
-      });
+      const shiftDefinitions =
+        (departmentKey === "DRIVER" && shifts.SECURITY) || shifts[departmentKey] || shifts.MEP || [];
       const scheduleShiftCode = scheduleMap.get(key) || "";
-      const scheduledShift = taggedShiftCode
-        ? taggedWithinTolerance || !taggedShiftDefinition
-          ? taggedShiftCode
-          : ""
-        : scheduleShiftCode;
-      const shiftCodes = [...new Set([...(bucket.shiftCodes || []), scheduledShift].filter(Boolean))];
-      const shiftBreakdown = resolveNormalAndOtShifts({
-        scheduledShift,
-        detectedShiftCodes: shiftCodes,
-        shiftDefinitions,
-        preferNonGeneralWhenAvailable: departmentKey === "HOUSEKEEPING",
-      });
-      const combinedShiftCode = normalizeShiftCombination(shiftCodes);
-      const noOtDepartment = isNoOtDepartment(employee.department);
-      let finalNormalShift = scheduledShift || shiftBreakdown.normalShift || combinedShiftCode || "";
-      const classifiedDepartment = departmentKey;
-      const isSecurityGeneralNoOt =
-        classifiedDepartment === "SECURITY" && finalNormalShift === "G";
-      const isHousekeepingGeneralNoOt =
-        classifiedDepartment === "HOUSEKEEPING" && finalNormalShift === "G";
-      let finalOtShift =
-        noOtDepartment || isSecurityGeneralNoOt || isHousekeepingGeneralNoOt || finalNormalShift === "G"
-          ? ""
-          : shiftBreakdown.otShift;
-
-      // If both check-in and check-out align to the same normal shift boundaries,
-      // treat it as single-shift duty and ignore boundary overlap OT (e.g., C ending at 07:00 vs A starting 07:00).
-      const finalNormalShiftDefinition = getShiftDefinitionByCode(shiftDefinitions, finalNormalShift);
-      const singleShiftBoundaryMatch = isSingleShiftBoundaryMatch({
+      const taggedShiftCode = inferShiftCodeFromShiftName(taggedShift.employeeShiftName);
+      const workingHours = Number(hoursBetween(checkIn, checkOut).toFixed(2));
+      const ruleResult = applyRuleForDepartment(departmentKey, {
+        employeeId: bucket.employeeId,
+        date: bucket.date,
         checkIn,
         checkOut,
-        shiftDefinition: finalNormalShiftDefinition,
+        workingHours,
+        shiftDefinitions,
+        scheduledShift: scheduleShiftCode || taggedShiftCode || "",
       });
-      if (singleShiftBoundaryMatch) {
-        finalOtShift = "";
-      }
-
-      // Housekeeping: OT only when continuation into next shift is significant (>= 6 hrs extra).
-      if (classifiedDepartment === "HOUSEKEEPING" && finalNormalShift && finalNormalShift !== "G") {
-        const normalShiftDefinition = getShiftDefinitionByCode(shiftDefinitions, finalNormalShift);
-        const normalHours = getShiftDurationHours(normalShiftDefinition);
-        const workedHours = Number(hoursBetween(checkIn, checkOut).toFixed(2));
-        const extraHours = Number((workedHours - normalHours).toFixed(2));
-        if (extraHours < 6) {
-          finalOtShift = "";
-        }
-      }
-
-      if (classifiedDepartment === "HOUSEKEEPING" && finalOtShift) {
-        finalOtShift = normalizeHousekeepingOtShift({
-          normalShift: finalNormalShift,
-          otShift: finalOtShift,
-          checkIn,
-          checkOut,
-        });
-      }
-
-      // Boundary noise cleanup for B<->C and A<->B transitions around exact handover times.
-      if (finalOtShift && finalNormalShift) {
-        const normalDef = getShiftDefinitionByCode(shiftDefinitions, finalNormalShift);
-        const otDef = getShiftDefinitionByCode(shiftDefinitions, finalOtShift);
-        const nearNormalBoundary = isSingleShiftBoundaryMatch({
-          checkIn,
-          checkOut,
-          shiftDefinition: normalDef,
-          toleranceMinutes: 2,
-        });
-        const nearOtBoundary = isSingleShiftBoundaryMatch({
-          checkIn,
-          checkOut,
-          shiftDefinition: otDef,
-          toleranceMinutes: 2,
-        });
-        if (nearNormalBoundary || nearOtBoundary || Number(hoursBetween(checkIn, checkOut).toFixed(2)) <= 1) {
-          finalOtShift = "";
-        }
-      }
-
-      // MEP General: OT only when extra hours are >= 3.
-      if (classifiedDepartment === "MEP" && finalNormalShift === "G") {
-        const generalShiftDefinition = getShiftDefinitionByCode(shiftDefinitions, "G");
-        const expectedHours = getShiftDurationHours(generalShiftDefinition) || 9;
-        const workedHours = Number(hoursBetween(checkIn, checkOut).toFixed(2));
-        const extraHours = Number((workedHours - expectedHours).toFixed(2));
-        if (extraHours >= 3) {
-          finalOtShift = `${extraHours}h OT`;
-          finalNormalShift = `G+${extraHours}h OT`;
-        } else {
-          finalOtShift = "";
-          finalNormalShift = "G";
-        }
-      }
+      const finalNormalShift = ruleResult.normalShiftCode || ruleResult.code || ruleResult.dutyShift || "L";
+      const finalOtShift = ruleResult.otShiftCode || "";
 
       rows.push({
         date: bucket.date,
@@ -710,13 +622,18 @@ async function getAttendanceTableData(req, res, next) {
         area: employee.area,
         check_in: checkInRaw,
         check_out: checkOutRaw,
-        working_hours: Number(hoursBetween(checkIn, checkOut).toFixed(2)),
+        working_hours: workingHours,
         punch_count: punches.length,
         employee_shift_name: taggedShift.employeeShiftName,
         original_shift_timings: taggedShift.originalShiftTimings,
+        scheduled_shift: scheduleShiftCode || "",
         normal_shift: finalNormalShift,
         ot_shift: finalOtShift || "",
-        is_ot: finalOtShift ? "YES" : "NO",
+        attendance_status: ruleResult.attendanceStatus || "P",
+        ot_hours: Number(ruleResult.otHours || 0),
+        is_ot:
+          ruleResult.otStatus ||
+          (Number(ruleResult.otHours || 0) > 0 ? "YES" : "NO"),
       });
     });
 

@@ -14,7 +14,10 @@ function getShifts() {
 }
 
 function setShifts(value) {
-  state.shifts = value || {};
+  state.shifts = {
+    ...JSON.parse(JSON.stringify(defaultShiftMaster)),
+    ...(value || {}),
+  };
 }
 
 function getWeekoffs() {

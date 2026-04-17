@@ -2,6 +2,7 @@ const multer = require("multer");
 const { parseExcelBuffer } = require("../parsers/excelParser");
 const { stores } = require("../storage");
 const runtimeStore = require("../storage/runtimeStore");
+const { normalizeHHMM, toMinutes } = require("../utils/shiftUtils");
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -10,13 +11,15 @@ const upload = multer({
 function normalizeShiftRows(rows) {
   return rows.reduce((acc, row) => {
     const department = String(row.department || row.dept || "MEP").toUpperCase();
+    const start = normalizeHHMM(row.start || row.start_time || "09:00");
+    const end = normalizeHHMM(row.end || row.end_time || "18:00");
     const entry = {
       code: String(row.code || row.shift || "").toUpperCase(),
-      start: String(row.start || row.start_time || "09:00"),
-      end: String(row.end || row.end_time || "18:00"),
+      start,
+      end,
     };
     if (!entry.code) return acc;
-    entry.overnight = entry.end < entry.start;
+    entry.overnight = toMinutes(entry.end) <= toMinutes(entry.start);
     if (!acc[department]) acc[department] = [];
     acc[department].push(entry);
     return acc;
