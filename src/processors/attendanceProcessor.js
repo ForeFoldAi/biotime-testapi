@@ -252,16 +252,16 @@ function processAttendance({
 
       if (!grouped || grouped.punches.length === 0) {
         let weekoffCode = null;
-        if (employee.department === "MEP" || employee.department === "HOUSEKEEPING") {
+        if (
+          employee.department === "MEP" ||
+          employee.department === "HOUSEKEEPING" ||
+          employee.department === "LANDSCAPE"
+        ) {
           weekoffCode = evaluateMepWeeklyOffFromAdjacentPresent(dateObj, weeklyOffDay, (ds) => {
             const cached = ruleCache.get(`${employee.employeeId}|${ds}`);
             return cached?.attendanceStatus;
           });
-        } else if (
-          employee.department !== "SECURITY" &&
-          employee.department !== "DRIVER" &&
-          employee.department !== "LANDSCAPE"
-        ) {
+        } else if (employee.department !== "SECURITY" && employee.department !== "DRIVER") {
           weekoffCode = evaluateWeekOffCode(
             employee.employeeId,
             dateObj,

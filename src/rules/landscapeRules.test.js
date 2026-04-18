@@ -95,23 +95,23 @@ test("early check-in within grace returns P", () => {
   assert.equal(result.attendance_status, "P");
 });
 
-test("09:15 check-in is on-time and not LC", () => {
+test("11:59 check-in is on-time", () => {
   const result = applyLandscapeRules(
     buildRecord({
-      checkIn: "2026-04-01T09:15:00",
+      checkIn: "2026-04-01T11:59:00",
       checkOut: "2026-04-01T17:00:00",
-      workingHours: 7.75,
+      workingHours: 5.02,
     })
   );
   assert.equal(result.attendance_status, "P");
 });
 
-test("late check-in after grace returns LC", () => {
+test("12:00 check-in is late LC", () => {
   const result = applyLandscapeRules(
     buildRecord({
-      checkIn: "2026-04-01T09:16:00",
+      checkIn: "2026-04-01T12:00:00",
       checkOut: "2026-04-01T17:00:00",
-      workingHours: 7.73,
+      workingHours: 5,
     })
   );
   assert.equal(result.attendance_status, "LC");
@@ -131,15 +131,15 @@ test("early checkout returns EL", () => {
 test("late and early returns LC+EL", () => {
   const result = applyLandscapeRules(
     buildRecord({
-      checkIn: "2026-04-01T09:30:00",
+      checkIn: "2026-04-01T12:30:00",
       checkOut: "2026-04-01T16:00:00",
-      workingHours: 6.5,
+      workingHours: 3.5,
     })
   );
   assert.equal(result.attendance_status, "LC+EL");
 });
 
-test("ot starts only after 17:00", () => {
+test("no OT reported for landscape (is_ot always NO, ot_hours 0)", () => {
   const result = applyLandscapeRules(
     buildRecord({
       checkIn: "2026-04-01T09:00:00",
@@ -148,8 +148,9 @@ test("ot starts only after 17:00", () => {
     })
   );
   assert.equal(result.attendance_status, "P");
-  assert.equal(result.ot_hours, 1.5);
-  assert.equal(result.is_ot, "YES");
+  assert.equal(result.ot_hours, 0);
+  assert.equal(result.is_ot, "NO");
+  assert.equal(result.otStatus, "NO");
 });
 
 test("pest control department reuses landscape engine exactly", () => {

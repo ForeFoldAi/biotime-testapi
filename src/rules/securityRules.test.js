@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { applySecurityRules } = require("./securityRules");
+const { applySecurityRules, _internal } = require("./securityRules");
 const { applyDriverRules } = require("./driverRules");
 
 function buildRecord({
@@ -72,7 +72,7 @@ test("working hours <= 0 returns L", () => {
   assert.equal(result.attendanceStatus, "L");
 });
 
-test("single A4 remains A4 when no valid double", () => {
+test("single C4 when check-in is after 13:00 (no afternoon A4 band)", () => {
   const result = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T14:00:00",
@@ -81,7 +81,7 @@ test("single A4 remains A4 when no valid double", () => {
       workingHours: 8,
     })
   );
-  assert.equal(result.dutyShift, "A4");
+  assert.equal(result.dutyShift, "C4");
   assert.equal(result.otStatus, "NO");
 });
 
@@ -188,46 +188,38 @@ test("general shift has no OT and no mix", () => {
   assert.equal(result.otStatus, "NO");
 });
 
-test("attendance grace for G uses 09:15", () => {
-  const onGrace = applySecurityRules(
+test("security G on-time before 13:00:59 late boundary", () => {
+  const result = applySecurityRules(
     buildRecord({
-      checkIn: "2026-04-01T09:10:00",
+      checkIn: "2026-04-01T12:30:00",
       checkOut: "2026-04-01T18:00:00",
-      workingHours: 8.83,
+      workingHours: 9,
     })
   );
-  assert.equal(onGrace.dutyShift, "G");
-  assert.equal(onGrace.attendanceStatus, "P");
-
-  const beyondGrace = applySecurityRules(
-    buildRecord({
-      checkIn: "2026-04-01T09:20:00",
-      checkOut: "2026-04-01T18:00:00",
-      workingHours: 8.66,
-    })
-  );
-  assert.equal(beyondGrace.attendanceStatus, "LC");
+  assert.equal(result.dutyShift, "G");
+  assert.equal(result.attendanceStatus, "P");
 });
 
-test("attendance grace for A4 uses 08:15", () => {
-  const onGrace = applySecurityRules(
+test("security A4 late after 08:30:59", () => {
+  const onTime = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T08:10:00",
       checkOut: "2026-04-01T20:00:00",
       workingHours: 11.83,
     })
   );
-  assert.equal(onGrace.dutyShift, "A4");
-  assert.equal(onGrace.attendanceStatus, "P");
+  assert.equal(onTime.dutyShift, "A4");
+  assert.equal(onTime.attendanceStatus, "P");
 
-  const beyondGrace = applySecurityRules(
-    buildRecord({
-      checkIn: "2026-04-01T08:20:00",
-      checkOut: "2026-04-01T20:00:00",
-      workingHours: 11.66,
-    })
+  assert.equal(
+    _internal.resolveAttendance(
+      "A4",
+      { checkOutMinutes: 20 * 60 },
+      { anyPunch: true, singlePunch: false, workingHours: 9 },
+      "2026-04-01T08:31:00"
+    ),
+    "LC"
   );
-  assert.equal(beyondGrace.attendanceStatus, "LC");
 });
 
 test("sec-a4 hint never falls to general", () => {

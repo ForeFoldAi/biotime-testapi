@@ -3,12 +3,16 @@ const MIN_DUTY_HOURS = 8;
 const FULL_SHIFT_HOURS = 12;
 const DOUBLE_SHIFT_HOURS = 16;
 
-const SHIFT_WINDOWS = {
-  C4_1: { start: 18 * 60, end: 23 * 60 + 59 },
-  C4_2: { start: 0, end: 5 * 60 },
-  A4_1: { start: 5 * 60 + 1, end: 8 * 60 + 30 },
-  G: { start: 8 * 60 + 31, end: 13 * 60 },
-  A4_2: { start: 13 * 60 + 1, end: 19 * 60 },
+/** Seconds from midnight (local). Unified: G 08:31–13:00:59, A4 02:01–08:30:59, C4 13:01–23:59:59 + 00:00–02:00:59 */
+const SEC = {
+  C4_EVENING_START: 13 * 3600 + 60,
+  C4_MORNING_END: 2 * 3600 + 59,
+  A4_START: 2 * 3600 + 60,
+  A4_END: 8 * 3600 + 30 * 60 + 59,
+  G_START: 8 * 3600 + 31 * 60,
+  G_END: 13 * 3600 + 59,
+  LATE_G: 13 * 3600 + 59,
+  LATE_A4: 8 * 3600 + 30 * 60 + 59,
 };
 
 function toBusinessRelativeMinutes(dateTime, businessDate) {
@@ -19,12 +23,14 @@ function toBusinessRelativeMinutes(dateTime, businessDate) {
   return (ts.getTime() - base.getTime()) / (1000 * 60);
 }
 
-function normalizeDayMinute(minutes) {
-  return ((minutes % DAY_MINUTES) + DAY_MINUTES) % DAY_MINUTES;
+function secondsFromMidnight(dateTime) {
+  const d = new Date(dateTime);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds();
 }
 
-function inRange(value, start, end) {
-  return value >= start && value <= end;
+function normalizeDayMinute(minutes) {
+  return ((minutes % DAY_MINUTES) + DAY_MINUTES) % DAY_MINUTES;
 }
 
 function hasNoPunch(dailyRecord) {
@@ -46,10 +52,12 @@ function normalizeInterval(dailyRecord) {
       ? (checkOutMinutes - checkInMinutes) / 60
       : null;
 
+  const checkInSecondsOfDay = dailyRecord?.checkIn ? secondsFromMidnight(dailyRecord.checkIn) : null;
   return {
     checkInMinutes,
     checkOutMinutes,
     checkInMinuteOfDay: Number.isFinite(checkInMinutes) ? normalizeDayMinute(checkInMinutes) : null,
+    checkInSecondsOfDay,
     computedWorkingHours,
   };
 }
@@ -92,18 +100,18 @@ function parseShiftHints(dailyRecord) {
   };
 }
 
-function detectShiftFromPunchTime(minuteOfDay) {
-  if (!Number.isFinite(minuteOfDay)) return null;
-  if (inRange(minuteOfDay, SHIFT_WINDOWS.C4_1.start, SHIFT_WINDOWS.C4_1.end)) return "C4";
-  if (inRange(minuteOfDay, SHIFT_WINDOWS.C4_2.start, SHIFT_WINDOWS.C4_2.end)) return "C4";
-  if (inRange(minuteOfDay, SHIFT_WINDOWS.A4_1.start, SHIFT_WINDOWS.A4_1.end)) return "A4";
-  if (inRange(minuteOfDay, SHIFT_WINDOWS.G.start, SHIFT_WINDOWS.G.end)) return "G";
-  if (inRange(minuteOfDay, SHIFT_WINDOWS.A4_2.start, SHIFT_WINDOWS.A4_2.end)) return "A4";
+/** Assignment order: G 08:31–13:00:59, A4 02:01–08:30:59, C4 13:01–23:59:59 + 00:00–02:00:59 */
+function detectShiftFromPunchTime(checkInSeconds) {
+  if (!Number.isFinite(checkInSeconds)) return null;
+  const s = checkInSeconds;
+  if (s >= SEC.G_START && s <= SEC.G_END) return "G";
+  if (s >= SEC.A4_START && s <= SEC.A4_END) return "A4";
+  if ((s >= SEC.C4_EVENING_START && s <= 86399) || (s >= 0 && s <= SEC.C4_MORNING_END)) return "C4";
   return null;
 }
 
 function detectBaseShift(interval, hint) {
-  const fromTime = detectShiftFromPunchTime(interval.checkInMinuteOfDay);
+  const fromTime = detectShiftFromPunchTime(interval.checkInSecondsOfDay);
   if (fromTime) return fromTime;
   if (hint.c4) return "C4";
   if (hint.a4) return "A4";
@@ -155,31 +163,26 @@ function detectDoubleShift(baseShift, interval, workingHours) {
   return null;
 }
 
-function getShiftStartMinute(baseShift) {
-  if (baseShift === "G") return 9 * 60;
-  if (baseShift === "C4") return 20 * 60;
-  return 8 * 60;
-}
-
-function resolveAttendance(baseShift, interval, options) {
+function resolveAttendance(baseShift, interval, options, checkInDate) {
   if (!options.anyPunch) return "L";
   if (options.singlePunch) return "EL";
   if (!Number.isFinite(options.workingHours) || options.workingHours < MIN_DUTY_HOURS) return "EL";
 
-  const checkInAbsolute = interval.checkInMinutes;
   const checkOutMinute = interval.checkOutMinutes;
   let late = false;
   let early = false;
-  const graceLateMinute = getShiftStartMinute(baseShift) + 15;
+  const s = secondsFromMidnight(checkInDate);
 
   if (baseShift === "G") {
-    late = Number.isFinite(checkInAbsolute) && checkInAbsolute > graceLateMinute;
+    late = Number.isFinite(s) && s > SEC.LATE_G;
     early = Number.isFinite(checkOutMinute) ? checkOutMinute < 18 * 60 : true;
   } else if (baseShift === "A4") {
-    late = Number.isFinite(checkInAbsolute) && checkInAbsolute > graceLateMinute;
+    late = Number.isFinite(s) && s > SEC.LATE_A4;
     early = Number.isFinite(checkOutMinute) ? checkOutMinute < 20 * 60 : true;
   } else {
-    late = Number.isFinite(checkInAbsolute) && checkInAbsolute > graceLateMinute;
+    const lateC4 =
+      Number.isFinite(s) && s >= 20 * 3600 && s > 20 * 3600 + 15 * 60;
+    late = lateC4;
     early = Number.isFinite(checkOutMinute) ? checkOutMinute < DAY_MINUTES + 8 * 60 : true;
   }
 
@@ -248,11 +251,16 @@ function applySecurityRules(dailyRecord) {
     });
   }
 
-  const attendanceStatus = resolveAttendance(baseShift, interval, {
-    anyPunch: hasAnyPunch(dailyRecord),
-    singlePunch: false,
-    workingHours,
-  });
+  const attendanceStatus = resolveAttendance(
+    baseShift,
+    interval,
+    {
+      anyPunch: hasAnyPunch(dailyRecord),
+      singlePunch: false,
+      workingHours,
+    },
+    dailyRecord.checkIn
+  );
 
   const doubleShift = detectDoubleShift(baseShift, interval, workingHours);
   if (doubleShift) {

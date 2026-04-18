@@ -1,8 +1,8 @@
 const DAY_MINUTES = 24 * 60;
-const GRACE_MINUTES = 15;
 const SHIFT_CODE = "G";
-const SHIFT_START = 9 * 60;
 const SHIFT_END = 17 * 60;
+/** Late check-in (LC) from 12:00:00 (after 11:59 per unified rules). */
+const LATE_CHECKIN_FROM_SECONDS = 12 * 3600;
 
 function toBusinessRelativeMinutes(dateTime, businessDate) {
   if (!dateTime || !businessDate) return null;
@@ -10,6 +10,12 @@ function toBusinessRelativeMinutes(dateTime, businessDate) {
   const ts = new Date(dateTime);
   if (Number.isNaN(base.getTime()) || Number.isNaN(ts.getTime())) return null;
   return (ts.getTime() - base.getTime()) / (1000 * 60);
+}
+
+function secondsFromMidnight(dateTime) {
+  const d = new Date(dateTime);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds();
 }
 
 function normalizeInterval(dailyRecord) {
@@ -89,7 +95,8 @@ function applyLandscapeRules(dailyRecord) {
     return buildLoss();
   }
 
-  const late = interval.checkInMinutes > SHIFT_START + GRACE_MINUTES;
+  const checkInSec = secondsFromMidnight(dailyRecord.checkIn);
+  const late = Number.isFinite(checkInSec) && checkInSec >= LATE_CHECKIN_FROM_SECONDS;
   const early = interval.checkOutMinutes < SHIFT_END;
   if (workingHours != null && workingHours <= 0) return buildLoss();
 
@@ -98,10 +105,7 @@ function applyLandscapeRules(dailyRecord) {
   else if (late) attendanceStatus = "LC";
   else if (early) attendanceStatus = "EL";
 
-  const otMinutes = Math.max(0, interval.checkOutMinutes - SHIFT_END);
-  const otHours = Math.round((otMinutes / 60) * 100) / 100;
-  const otStatus = otHours > 0 ? "YES" : "NO";
-  return buildResult(attendanceStatus, otHours, otStatus);
+  return buildResult(attendanceStatus, 0, "NO");
 }
 
 module.exports = {

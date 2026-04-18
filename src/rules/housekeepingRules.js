@@ -1,5 +1,4 @@
 const DAY_MINUTES = 24 * 60;
-const ATTEND_GRACE = 15;
 const A_END = 15 * 60;
 const B_END = 21 * 60;
 const C_END = 6 * 60 + DAY_MINUTES; // Always next-day end (30:00)
@@ -181,15 +180,38 @@ function buildWorksTimeline(workStart, workEnd, windows, codes = ["G1", "G2", "A
   return merged;
 }
 
-/**
- * IN on-time: checkIn ≤ shiftStart + 15. OUT on-time: checkOut ≥ shiftEnd.
- * (e.g. C check-in 21:00:15 counts as on-time vs 21:00 + 15.)
- */
-function attendanceForShift({ ci, co, shiftStart, shiftEnd }) {
-  if (ci <= shiftStart + ATTEND_GRACE && co >= shiftEnd) {
-    return { status: "P" };
+function secondsFromMidnight(dateTime) {
+  const d = new Date(dateTime);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds();
+}
+
+/** Late check-in (LC) thresholds (seconds from midnight, local). Unified table. */
+const HK_LATE_SEC = {
+  G1: 10 * 3600 + 31 * 60,
+  G2: 8 * 3600 + 31 * 60,
+  A: 7 * 3600 + 1 * 60,
+  B: 16 * 3600 + 31 * 60,
+};
+
+function hkLateCheckin(checkIn, primaryCode) {
+  if (!checkIn) return false;
+  const s = secondsFromMidnight(checkIn);
+  if (!Number.isFinite(s)) return false;
+  if (primaryCode === "G1") return s > HK_LATE_SEC.G1;
+  if (primaryCode === "G2") return s > HK_LATE_SEC.G2;
+  if (primaryCode === "A") return s > HK_LATE_SEC.A;
+  if (primaryCode === "B") return s > HK_LATE_SEC.B;
+  if (primaryCode === "C") {
+    if (s >= 21 * 3600) return s > 21 * 3600 + 15 * 60;
+    if (s <= 6 * 3600) return s > 2 * 3600 + 59;
+    return false;
   }
-  const lc = ci > shiftStart + ATTEND_GRACE;
+  return false;
+}
+
+function attendanceForShift({ ci, co, shiftEnd, primaryCode, checkIn }) {
+  const lc = hkLateCheckin(checkIn, primaryCode);
   const el = co < shiftEnd;
   if (lc && el) return { status: "LC+EL" };
   if (lc) return { status: "LC" };
@@ -266,9 +288,15 @@ function shouldShortCircuitInvalidPunch(dailyRecord) {
   return false;
 }
 
-function generalResult(primary, ci, co, windows, worksStr) {
+function generalResult(primary, ci, co, windows, worksStr, dailyRecord) {
   const inst = findPrimaryShiftInstance(windows, primary, ci);
-  const { status: att } = attendanceForShift({ ci, co, shiftStart: inst.start, shiftEnd: inst.end });
+  const { status: att } = attendanceForShift({
+    ci,
+    co,
+    shiftEnd: inst.end,
+    primaryCode: primary,
+    checkIn: dailyRecord?.checkIn,
+  });
   return {
     dutyShift: primary,
     shift_code: primary,
@@ -290,13 +318,14 @@ function generalResult(primary, ci, co, windows, worksStr) {
   };
 }
 
-function buildAbcChain(primary, ci, co, worksMerged, windows) {
+function buildAbcChain(primary, ci, co, worksMerged, windows, dailyRecord) {
   const primaryInst = findPrimaryShiftInstance(windows, primary, ci);
   const att = attendanceForShift({
     ci,
     co,
-    shiftStart: primaryInst.start,
     shiftEnd: primaryInst.end,
+    primaryCode: primary,
+    checkIn: dailyRecord?.checkIn,
   });
   // Final strict OT patch:
   // - OT only considered for B base shift
@@ -403,13 +432,13 @@ function applyHousekeepingRules(dailyRecord) {
   }
 
   if (generalHint || primary === "G1" || primary === "G2") {
-    return generalResult(primary, ci, co, windows, primaryWorksStr);
+    return generalResult(primary, ci, co, windows, primaryWorksStr, dailyRecord);
   }
 
   const worksMerged = worksForPrimary;
   const worksStr = primaryWorksStr;
 
-  const abc = buildAbcChain(primary, ci, co, worksMerged, windows);
+  const abc = buildAbcChain(primary, ci, co, worksMerged, windows, dailyRecord);
   const otShift = abc.otStatus === "YES" ? `${abc.chain.slice(0, 2).join("")}-OT` : "NONE";
 
   return {
