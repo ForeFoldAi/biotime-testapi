@@ -1,4 +1,5 @@
 const { listMonthDates } = require("../utils/dateUtils");
+const { formatHoursToHM } = require("../utils/formatHours");
 
 function buildTabularReport(processedAttendance) {
   const { month, year, rows } = processedAttendance;
@@ -10,6 +11,7 @@ function buildTabularReport(processedAttendance) {
       dayColumns[String(day)] = row.daily[day] || "L";
     }
 
+    const rawOt = row.totals.otHours;
     return {
       employee_id: row.employeeId,
       employee_name: row.employeeName,
@@ -17,7 +19,8 @@ function buildTabularReport(processedAttendance) {
       week_off: row.weekOff || "",
       ...dayColumns,
       present_days: row.totals.presentDays,
-      ot_hours: row.totals.otHours,
+      ot_hours: formatHoursToHM(rawOt),
+      ot_hours_decimal: rawOt,
     };
   });
 

@@ -1,8 +1,8 @@
 const DAY_MINUTES = 24 * 60;
 const SHIFT_CODE = "G";
-const SHIFT_END = 17 * 60;
-/** Late check-in (LC) from 12:00:00 (after 11:59 per unified rules). */
-const LATE_CHECKIN_FROM_SECONDS = 12 * 3600;
+/** General shift 09:00–17:00; 15 min grace: late after 09:15, early leave before 16:45 */
+const LATE_CHECKIN_MIN_EXCLUSIVE = 9 * 60 + 15; // 555 — late if check-in minute > this
+const EARLY_CHECKOUT_MIN_EXCLUSIVE = 16 * 60 + 45; // 1005 — early if check-out minute < this
 
 function toBusinessRelativeMinutes(dateTime, businessDate) {
   if (!dateTime || !businessDate) return null;
@@ -12,10 +12,10 @@ function toBusinessRelativeMinutes(dateTime, businessDate) {
   return (ts.getTime() - base.getTime()) / (1000 * 60);
 }
 
-function secondsFromMidnight(dateTime) {
+function minutesFromMidnight(dateTime) {
   const d = new Date(dateTime);
   if (Number.isNaN(d.getTime())) return null;
-  return d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds();
+  return d.getHours() * 60 + d.getMinutes();
 }
 
 function normalizeInterval(dailyRecord) {
@@ -31,13 +31,6 @@ function normalizeInterval(dailyRecord) {
   return { checkInMinutes, checkOutMinutes, computedWorkingHours };
 }
 
-function resolveWorkingHours(dailyRecord, interval) {
-  const provided = Number(dailyRecord?.workingHours);
-  if (Number.isFinite(provided)) return provided;
-  if (Number.isFinite(interval.computedWorkingHours)) return interval.computedWorkingHours;
-  return null;
-}
-
 function isSinglePunch(dailyRecord) {
   const punchCount = Number(dailyRecord?.punchCount);
   if (Number.isFinite(punchCount) && punchCount < 2) return true;
@@ -47,7 +40,7 @@ function isSinglePunch(dailyRecord) {
   return Number.isFinite(inMs) && Number.isFinite(outMs) && inMs === outMs;
 }
 
-function buildResult(attendanceStatus, otHours, otStatus) {
+function buildResult(attendanceStatus) {
   return {
     code: SHIFT_CODE,
     shift_code: SHIFT_CODE,
@@ -55,14 +48,14 @@ function buildResult(attendanceStatus, otHours, otStatus) {
     normalShiftCode: SHIFT_CODE,
     attendanceStatus,
     attendance_status: attendanceStatus,
-    otHours,
-    ot_hours: otHours,
-    otStatus,
-    is_ot: otStatus,
+    otHours: 0,
+    ot_hours: 0,
+    otStatus: "NO",
+    is_ot: "NO",
     otShiftCode: "",
     ot_shift: "",
-    otLabel: otStatus === "YES" ? "G-OT" : "",
-    ot_label: otStatus === "YES" ? "G-OT" : "",
+    otLabel: "",
+    ot_label: "",
   };
 }
 
@@ -90,22 +83,28 @@ function applyLandscapeRules(dailyRecord) {
   if (isSinglePunch(dailyRecord)) return buildLoss();
 
   const interval = normalizeInterval(dailyRecord);
-  const workingHours = resolveWorkingHours(dailyRecord, interval);
   if (!Number.isFinite(interval.checkInMinutes) || !Number.isFinite(interval.checkOutMinutes)) {
     return buildLoss();
   }
 
-  const checkInSec = secondsFromMidnight(dailyRecord.checkIn);
-  const late = Number.isFinite(checkInSec) && checkInSec >= LATE_CHECKIN_FROM_SECONDS;
-  const early = interval.checkOutMinutes < SHIFT_END;
-  if (workingHours != null && workingHours <= 0) return buildLoss();
+  const spanHours = interval.computedWorkingHours;
+  if (spanHours != null && spanHours <= 0) return buildLoss();
+
+  const checkInMin = minutesFromMidnight(dailyRecord.checkIn);
+  const checkOutMin = minutesFromMidnight(dailyRecord.checkOut);
+  if (!Number.isFinite(checkInMin) || !Number.isFinite(checkOutMin)) {
+    return buildLoss();
+  }
+
+  const late = checkInMin > LATE_CHECKIN_MIN_EXCLUSIVE;
+  const early = checkOutMin < EARLY_CHECKOUT_MIN_EXCLUSIVE;
 
   let attendanceStatus = "P";
   if (late && early) attendanceStatus = "LC+EL";
   else if (late) attendanceStatus = "LC";
   else if (early) attendanceStatus = "EL";
 
-  return buildResult(attendanceStatus, 0, "NO");
+  return buildResult(attendanceStatus);
 }
 
 module.exports = {

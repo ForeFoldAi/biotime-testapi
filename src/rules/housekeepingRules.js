@@ -180,38 +180,12 @@ function buildWorksTimeline(workStart, workEnd, windows, codes = ["G1", "G2", "A
   return merged;
 }
 
-function secondsFromMidnight(dateTime) {
-  const d = new Date(dateTime);
-  if (Number.isNaN(d.getTime())) return null;
-  return d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds();
-}
-
-/** Late check-in (LC) thresholds (seconds from midnight, local). Unified table. */
-const HK_LATE_SEC = {
-  G1: 10 * 3600 + 31 * 60,
-  G2: 8 * 3600 + 31 * 60,
-  A: 7 * 3600 + 1 * 60,
-  B: 16 * 3600 + 31 * 60,
-};
-
-function hkLateCheckin(checkIn, primaryCode) {
-  if (!checkIn) return false;
-  const s = secondsFromMidnight(checkIn);
-  if (!Number.isFinite(s)) return false;
-  if (primaryCode === "G1") return s > HK_LATE_SEC.G1;
-  if (primaryCode === "G2") return s > HK_LATE_SEC.G2;
-  if (primaryCode === "A") return s > HK_LATE_SEC.A;
-  if (primaryCode === "B") return s > HK_LATE_SEC.B;
-  if (primaryCode === "C") {
-    if (s >= 21 * 3600) return s > 21 * 3600 + 15 * 60;
-    if (s <= 6 * 3600) return s > 2 * 3600 + 59;
-    return false;
-  }
-  return false;
-}
-
-function attendanceForShift({ ci, co, shiftEnd, primaryCode, checkIn }) {
-  const lc = hkLateCheckin(checkIn, primaryCode);
+/** 15 min grace on check-in only; check-out vs exact shiftEnd (no grace). */
+function attendanceForShift({ ci, co, shiftInstance }) {
+  const shiftStart = shiftInstance.start;
+  const shiftEnd = shiftInstance.end;
+  const lateThreshold = shiftStart + 15;
+  const lc = ci > lateThreshold;
   const el = co < shiftEnd;
   if (lc && el) return { status: "LC+EL" };
   if (lc) return { status: "LC" };
@@ -251,13 +225,13 @@ function parsePunchMeta(dailyRecord) {
   return { inMs, outMs, hasPunchCount, punchCount, samePunch };
 }
 
-function singlePunchResult(primaryCode, worksStr) {
+function singlePunchResult(worksStr) {
   return {
-    dutyShift: primaryCode,
-    shift_code: primaryCode,
-    code: primaryCode,
-    attendanceStatus: "EL",
-    attendance_status: "EL",
+    dutyShift: "L",
+    shift_code: "L",
+    code: "L",
+    attendanceStatus: "L",
+    attendance_status: "L",
     otShift: "NONE",
     ot_shift: "NONE",
     otHours: 0,
@@ -266,7 +240,7 @@ function singlePunchResult(primaryCode, worksStr) {
     ot_status: "NO",
     otLabel: "",
     ot_label: "",
-    normalShiftCode: primaryCode,
+    normalShiftCode: "",
     otShiftCode: "",
     worksTimeline: worksStr,
     works_timeline: worksStr,
@@ -288,14 +262,12 @@ function shouldShortCircuitInvalidPunch(dailyRecord) {
   return false;
 }
 
-function generalResult(primary, ci, co, windows, worksStr, dailyRecord) {
+function generalResult(primary, ci, co, windows, worksStr) {
   const inst = findPrimaryShiftInstance(windows, primary, ci);
   const { status: att } = attendanceForShift({
     ci,
     co,
-    shiftEnd: inst.end,
-    primaryCode: primary,
-    checkIn: dailyRecord?.checkIn,
+    shiftInstance: inst,
   });
   return {
     dutyShift: primary,
@@ -318,58 +290,69 @@ function generalResult(primary, ci, co, windows, worksStr, dailyRecord) {
   };
 }
 
-function buildAbcChain(primary, ci, co, worksMerged, windows, dailyRecord) {
+function buildAbcChain(primary, ci, co, worksMerged, windows) {
   const primaryInst = findPrimaryShiftInstance(windows, primary, ci);
   const att = attendanceForShift({
     ci,
     co,
-    shiftEnd: primaryInst.end,
-    primaryCode: primary,
-    checkIn: dailyRecord?.checkIn,
+    shiftInstance: primaryInst,
   });
-  // Final strict OT patch:
-  // - OT only considered for B base shift
-  // - Base worked in B must be >= 4h before any OT evaluation
-  // - Valid OT only when B->C is fully completed (checkout >= 06:00 next day)
-  // - No grace for OT; only 0 or 9 hours
+  const dayOffset = Math.floor(primaryInst.start / DAY_MINUTES);
+  const bFullEnd = coreIntervalAbsolute(windows, "B", dayOffset).end;
 
-  if (primary !== "B") {
+  if (primary === "A") {
+    if (co <= primaryInst.end) {
+      return {
+        chain: [primary],
+        dutyShift: primary,
+        otStatus: "NO",
+        otHours: 0,
+        attendance: att.status,
+        primaryInst,
+      };
+    }
+    if (co < bFullEnd) {
+      return {
+        chain: [primary],
+        dutyShift: primary,
+        otStatus: "NOT_QUALIFIED",
+        otHours: 0,
+        attendance: att.status,
+        primaryInst,
+      };
+    }
     return {
-      chain: [primary],
-      dutyShift: primary,
-      otStatus: "NO",
-      otHours: 0,
+      chain: ["A", "B"],
+      dutyShift: "AB",
+      otStatus: "YES",
+      otHours: 6,
       attendance: att.status,
       primaryInst,
     };
   }
 
-  const baseWorkedMinutes = overlapMinutes(ci, co, primaryInst.start, primaryInst.end);
-  if (baseWorkedMinutes < 4 * 60) {
-    return {
-      chain: [primary],
-      dutyShift: primary,
-      otStatus: "NOT_QUALIFIED",
-      otHours: 0,
-      attendance: att.status,
-      primaryInst,
-    };
-  }
-
-  // Never OT for single shift B.
-  if (co <= B_END) {
-    return {
-      chain: [primary],
-      dutyShift: primary,
-      otStatus: "NO",
-      otHours: 0,
-      attendance: att.status,
-      primaryInst,
-    };
-  }
-
-  const nextShiftEnd = resolveNextShiftEndMinute(primary, primaryInst);
-  if (co >= nextShiftEnd) {
+  if (primary === "B") {
+    if (co <= primaryInst.end) {
+      return {
+        chain: [primary],
+        dutyShift: primary,
+        otStatus: "NO",
+        otHours: 0,
+        attendance: att.status,
+        primaryInst,
+      };
+    }
+    const cFullEnd = resolveNextShiftEndMinute(primary, primaryInst);
+    if (co < cFullEnd) {
+      return {
+        chain: [primary],
+        dutyShift: primary,
+        otStatus: "NOT_QUALIFIED",
+        otHours: 0,
+        attendance: att.status,
+        primaryInst,
+      };
+    }
     return {
       chain: [primary, "C"],
       dutyShift: "BC",
@@ -380,10 +363,42 @@ function buildAbcChain(primary, ci, co, worksMerged, windows, dailyRecord) {
     };
   }
 
+  if (primary === "C") {
+    const aFullEnd = resolveNextShiftEndMinute(primary, primaryInst);
+    if (co <= primaryInst.end) {
+      return {
+        chain: [primary],
+        dutyShift: primary,
+        otStatus: "NO",
+        otHours: 0,
+        attendance: att.status,
+        primaryInst,
+      };
+    }
+    if (co < aFullEnd) {
+      return {
+        chain: [primary],
+        dutyShift: primary,
+        otStatus: "NOT_QUALIFIED",
+        otHours: 0,
+        attendance: att.status,
+        primaryInst,
+      };
+    }
+    return {
+      chain: ["C", "A"],
+      dutyShift: "CA",
+      otStatus: "YES",
+      otHours: 9,
+      attendance: att.status,
+      primaryInst,
+    };
+  }
+
   return {
     chain: [primary],
     dutyShift: primary,
-    otStatus: "NOT_QUALIFIED",
+    otStatus: "NO",
     otHours: 0,
     attendance: att.status,
     primaryInst,
@@ -392,7 +407,7 @@ function buildAbcChain(primary, ci, co, worksMerged, windows, dailyRecord) {
 
 function applyHousekeepingRules(dailyRecord) {
   if (!dailyRecord?.checkIn || !dailyRecord?.checkOut) {
-    throw new Error("Missing check-in/check-out for housekeeping rule evaluation.");
+    return buildLoss("missing_punch");
   }
 
   if (shouldShortCircuitInvalidPunch(dailyRecord)) {
@@ -428,17 +443,17 @@ function applyHousekeepingRules(dailyRecord) {
     (punchMeta.hasPunchCount && punchMeta.punchCount < 2) ||
     (!punchMeta.hasPunchCount && punchMeta.samePunch);
   if (isSinglePunch) {
-    return singlePunchResult(primary, primaryWorksStr);
+    return singlePunchResult(primaryWorksStr);
   }
 
   if (generalHint || primary === "G1" || primary === "G2") {
-    return generalResult(primary, ci, co, windows, primaryWorksStr, dailyRecord);
+    return generalResult(primary, ci, co, windows, primaryWorksStr);
   }
 
   const worksMerged = worksForPrimary;
   const worksStr = primaryWorksStr;
 
-  const abc = buildAbcChain(primary, ci, co, worksMerged, windows, dailyRecord);
+  const abc = buildAbcChain(primary, ci, co, worksMerged, windows);
   const otShift = abc.otStatus === "YES" ? `${abc.chain.slice(0, 2).join("")}-OT` : "NONE";
 
   return {

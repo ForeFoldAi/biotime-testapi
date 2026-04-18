@@ -6,6 +6,7 @@ const runtimeStore = require("../storage/runtimeStore");
 const { buildTabularReport } = require("../reports/reportBuilder");
 const { exportReportToExcel } = require("../reports/excelExporter");
 const { startOfMonth, endOfMonth, formatDate, hoursBetween } = require("../utils/dateUtils");
+const { formatHoursToHM } = require("../utils/formatHours");
 
 function parseMonthYear(query) {
   const today = new Date();
@@ -153,11 +154,13 @@ async function getEmployeeCheckinCheckout(req, res, next) {
       const punches = item.punches.sort((a, b) => a.date - b.date);
       const checkIn = punches[0].date;
       const checkOut = punches[punches.length - 1].date;
+      const wh = Number(hoursBetween(checkIn, checkOut).toFixed(2));
       const entry = {
         date: item.date,
         check_in: punches[0].raw,
         check_out: punches[punches.length - 1].raw,
-        working_hours: Number(hoursBetween(checkIn, checkOut).toFixed(2)),
+        working_hours: formatHoursToHM(wh),
+        working_hours_decimal: wh,
         punch_count: punches.length,
       };
       employeeIndex.get(item.employee_id).attendance.push(entry);

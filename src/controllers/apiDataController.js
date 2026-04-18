@@ -9,6 +9,7 @@ const {
   getBusinessDateForTransaction,
   inferTransactionShiftCodes,
 } = require("../utils/shiftUtils");
+const { formatHoursToHM } = require("../utils/formatHours");
 
 function parseDateRange(query) {
   if (query.start_date && query.end_date) {
@@ -611,6 +612,7 @@ async function getAttendanceTableData(req, res, next) {
       });
       const finalNormalShift = ruleResult.normalShiftCode || ruleResult.code || ruleResult.dutyShift || "L";
       const finalOtShift = ruleResult.otShiftCode || "";
+      const rawOtHours = Number(ruleResult.otHours || 0);
 
       rows.push({
         date: bucket.date,
@@ -622,7 +624,8 @@ async function getAttendanceTableData(req, res, next) {
         area: employee.area,
         check_in: checkInRaw,
         check_out: checkOutRaw,
-        working_hours: workingHours,
+        working_hours: formatHoursToHM(workingHours),
+        working_hours_decimal: workingHours,
         punch_count: punches.length,
         employee_shift_name: taggedShift.employeeShiftName,
         original_shift_timings: taggedShift.originalShiftTimings,
@@ -630,10 +633,11 @@ async function getAttendanceTableData(req, res, next) {
         normal_shift: finalNormalShift,
         ot_shift: finalOtShift || "",
         attendance_status: ruleResult.attendanceStatus || "P",
-        ot_hours: Number(ruleResult.otHours || 0),
+        ot_hours: formatHoursToHM(rawOtHours),
+        ot_hours_decimal: rawOtHours,
         is_ot:
           ruleResult.otStatus ||
-          (Number(ruleResult.otHours || 0) > 0 ? "YES" : "NO"),
+          (rawOtHours > 0 ? "YES" : "NO"),
       });
     });
 

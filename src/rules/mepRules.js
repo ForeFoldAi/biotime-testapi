@@ -2,6 +2,8 @@ const DAY_MINUTES = 24 * 60;
 const ATTEND_GRACE = 15;
 const ALLOWED_TRANSITIONS = { A: "B", B: "C", C: "A" };
 const ABC_CODES = new Set(["A", "B", "C"]);
+/** Full-shift OT hours (additional shifts only; no partial minutes). */
+const SHIFT_OT_HOURS = { A: 7, B: 7, C: 10 };
 
 const FALLBACK_WINDOWS = {
   A: { start: 7 * 60, end: 14 * 60, overnight: false },
@@ -176,14 +178,20 @@ function gOtStatusAndHours(ci, co, windows) {
   return { otStatus: "NOT_QUALIFIED", otHours, attendance: att, shiftStart, shiftEnd, coreEnd };
 }
 
-function coreDurationMinutes(windows, code) {
-  const w = windows[code];
-  if (w.overnight) return DAY_MINUTES - w.start + w.end;
-  return w.end - w.start;
+/** Next shift instance in A→B→C→A cycle after prevInst (timeline-aligned). */
+function getNextShiftInstanceInCycle(windows, prevCode, prevInst) {
+  const nextCode = ALLOWED_TRANSITIONS[prevCode];
+  if (!nextCode) return null;
+  const dayOffset = Math.floor(prevInst.start / DAY_MINUTES);
+  if (prevCode === "C") {
+    return coreIntervalAbsolute(windows, nextCode, dayOffset + 1);
+  }
+  return coreIntervalAbsolute(windows, nextCode, dayOffset);
 }
 
 /**
- * ABC OT chain from primary using WORKS (ABC only), full completion only.
+ * ABC OT: only full completed additional shifts; fixed hours per shift; max triple duty (chain length 3).
+ * worksMerged kept for API compatibility (timeline unchanged elsewhere).
  */
 function buildAbcChainAndOt(primary, ci, co, worksMerged, windows) {
   const primaryInst = findPrimaryShiftInstance(windows, primary, ci);
@@ -204,60 +212,42 @@ function buildAbcChainAndOt(primary, ci, co, worksMerged, windows) {
     };
   }
 
-  let chain = [primary];
+  const chain = [primary];
   let curInst = primaryInst;
   let curCode = primary;
+  let otHours = 0;
 
-  while (true) {
-    const nextCode = ALLOWED_TRANSITIONS[curCode];
-    if (!nextCode) break;
-
-    const worksHasNext = worksMerged.some(
-      (s) => s.code === nextCode && overlapMinutes(ci, co, s.oStart, s.oEnd) > 0
-    );
-    if (!worksHasNext) break;
-
-    const candidates = listCoreInstances(windows, [nextCode], [-1, 0, 1, 2])
-      .filter((inst) => overlapMinutes(ci, co, inst.start, inst.end) > 0 && inst.end > curInst.end)
-      .sort((a, b) => a.start - b.start);
-    const nextInst = candidates[0];
+  while (chain.length < 3) {
+    const nextInst = getNextShiftInstanceInCycle(windows, curCode, curInst);
     if (!nextInst) break;
-    if (co < nextInst.end) break;
-
+    if (co < nextInst.end) {
+      if (co > curInst.end) {
+        return {
+          chain,
+          dutyShift: chain.join(""),
+          otStatus: "NOT_QUALIFIED",
+          otHours: 0,
+          attendance: att.status,
+          shiftStart,
+          shiftEnd,
+          primaryInst,
+        };
+      }
+      break;
+    }
+    const nextCode = ALLOWED_TRANSITIONS[curCode];
     chain.push(nextCode);
+    otHours += SHIFT_OT_HOURS[nextCode] || 0;
     curInst = nextInst;
     curCode = nextCode;
   }
 
   const dutyShift = chain.join("");
-
-  if (chain.length === 1) {
-    const extraMinutes = Math.max(0, co - primaryInst.end);
-    const otHours = extraMinutes > 0 ? round2(extraMinutes / 60) : 0;
-    return {
-      chain,
-      dutyShift,
-      otStatus: extraMinutes > 0 ? "NOT_QUALIFIED" : "NO",
-      otHours,
-      attendance: att.status,
-      shiftStart,
-      shiftEnd,
-      primaryInst,
-    };
-  }
-
-  let otMinutes = 0;
-  for (let i = 1; i < chain.length; i += 1) {
-    otMinutes += coreDurationMinutes(windows, chain[i]);
-  }
-  const lastEnd = curInst.end;
-  otMinutes += Math.max(0, co - lastEnd);
-
   return {
     chain,
     dutyShift,
-    otStatus: "YES",
-    otHours: round2(otMinutes / 60),
+    otStatus: otHours > 0 ? "YES" : "NO",
+    otHours: round2(otHours),
     attendance: att.status,
     shiftStart,
     shiftEnd,

@@ -95,37 +95,48 @@ test("early check-in within grace returns P", () => {
   assert.equal(result.attendance_status, "P");
 });
 
-test("11:59 check-in is on-time", () => {
+test("09:15 check-in is on-time (not late)", () => {
   const result = applyLandscapeRules(
     buildRecord({
-      checkIn: "2026-04-01T11:59:00",
+      checkIn: "2026-04-01T09:15:00",
       checkOut: "2026-04-01T17:00:00",
-      workingHours: 5.02,
+      workingHours: 7.75,
     })
   );
   assert.equal(result.attendance_status, "P");
 });
 
-test("12:00 check-in is late LC", () => {
+test("09:16 check-in is late LC", () => {
   const result = applyLandscapeRules(
     buildRecord({
-      checkIn: "2026-04-01T12:00:00",
+      checkIn: "2026-04-01T09:16:00",
       checkOut: "2026-04-01T17:00:00",
-      workingHours: 5,
+      workingHours: 7.73,
     })
   );
   assert.equal(result.attendance_status, "LC");
 });
 
-test("early checkout returns EL", () => {
+test("early checkout before 16:45 returns EL", () => {
   const result = applyLandscapeRules(
     buildRecord({
       checkIn: "2026-04-01T09:00:00",
-      checkOut: "2026-04-01T16:50:00",
-      workingHours: 7.83,
+      checkOut: "2026-04-01T16:44:00",
+      workingHours: 7.73,
     })
   );
   assert.equal(result.attendance_status, "EL");
+});
+
+test("16:45 checkout is not early leave", () => {
+  const result = applyLandscapeRules(
+    buildRecord({
+      checkIn: "2026-04-01T09:00:00",
+      checkOut: "2026-04-01T16:45:00",
+      workingHours: 7.75,
+    })
+  );
+  assert.equal(result.attendance_status, "P");
 });
 
 test("late and early returns LC+EL", () => {
