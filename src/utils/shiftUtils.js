@@ -85,8 +85,10 @@ function normalizeShiftCombination(shiftCodes) {
   const unique = [...new Set((shiftCodes || []).map((code) => String(code).toUpperCase()))].filter(Boolean);
   if (unique.length === 0) return "";
   if (unique.includes("G")) return "G";
-  if (unique.includes("G1") || unique.includes("G2")) {
-    return unique.includes("G1") ? "G1" : "G2";
+  const hasG9 = unique.some((x) => x === "G9" || x === "G1");
+  const hasG8 = unique.some((x) => x === "G8" || x === "G2");
+  if (hasG9 || hasG8) {
+    return hasG9 ? "G9" : "G8";
   }
 
   const order = ["A", "B", "C", "A4", "C4"];

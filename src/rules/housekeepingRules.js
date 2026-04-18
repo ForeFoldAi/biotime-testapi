@@ -4,8 +4,8 @@ const B_END = 21 * 60;
 const C_END = 6 * 60 + DAY_MINUTES; // Always next-day end (30:00)
 
 const FALLBACK_WINDOWS = {
-  G1: { code: "G1", start: 9 * 60, end: 18 * 60, overnight: false },
-  G2: { code: "G2", start: 8 * 60, end: 17 * 60, overnight: false },
+  G9: { code: "G9", start: 9 * 60, end: 18 * 60, overnight: false },
+  G8: { code: "G8", start: 8 * 60, end: 17 * 60, overnight: false },
   A: { code: "A", start: 6 * 60, end: 15 * 60, overnight: false },
   B: { code: "B", start: 12 * 60, end: 21 * 60, overnight: false },
   C: { code: "C", start: 21 * 60, end: 6 * 60, overnight: true },
@@ -27,7 +27,9 @@ function overlapMinutes(aStart, aEnd, bStart, bEnd) {
 
 function normalizeCode(code) {
   const c = String(code || "").toUpperCase();
-  if (c === "G") return "G1";
+  if (c === "G") return "G9";
+  if (c === "G1") return "G9";
+  if (c === "G2") return "G8";
   return c;
 }
 
@@ -36,7 +38,7 @@ function resolveHkWindows(shiftDefinitions = []) {
   for (const shift of shiftDefinitions) {
     const raw = String(shift.code || "").toUpperCase();
     const code = normalizeCode(raw);
-    if (!["G1", "G2", "A", "B", "C"].includes(code)) continue;
+    if (!["G9", "G8", "A", "B", "C"].includes(code)) continue;
     let start = 0;
     let end = 0;
     const [sh, sm] = String(shift.start || "00:00").split(":").map(Number);
@@ -51,8 +53,8 @@ function resolveHkWindows(shiftDefinitions = []) {
     };
   }
   return {
-    G1: map.G1 || { ...FALLBACK_WINDOWS.G1 },
-    G2: map.G2 || { ...FALLBACK_WINDOWS.G2 },
+    G9: map.G9 || { ...FALLBACK_WINDOWS.G9 },
+    G8: map.G8 || { ...FALLBACK_WINDOWS.G8 },
     A: map.A || { ...FALLBACK_WINDOWS.A },
     B: map.B || { ...FALLBACK_WINDOWS.B },
     C: map.C || { ...FALLBACK_WINDOWS.C },
@@ -111,15 +113,15 @@ function resolveNextShiftEndMinute(primaryCode, primaryInstance) {
 }
 
 /**
- * Check-in only. Priority: A → G2 → G1 → B → C.
- * A: 04:01–07:00, G2: 07:01–08:30, G1: 08:31–11:00, B: 11:01–19:00, C: 19:01–04:00 (+1)
+ * Check-in only. Priority: A → G8 → G9 → B → C.
+ * A: 04:01–07:00, G8: 07:01–08:30, G9: 08:31–11:00, B: 11:01–19:00, C: 19:01–04:00 (+1)
  */
 function assignShiftFromCheckInMinutes(inM) {
   const x = ((inM % DAY_MINUTES) + DAY_MINUTES) % DAY_MINUTES;
   const checks = [
     { code: "A", ok: x >= 4 * 60 + 1 && x <= 7 * 60 },
-    { code: "G2", ok: x >= 7 * 60 + 1 && x <= 8 * 60 + 30 },
-    { code: "G1", ok: x >= 8 * 60 + 31 && x <= 11 * 60 },
+    { code: "G8", ok: x >= 7 * 60 + 1 && x <= 8 * 60 + 30 },
+    { code: "G9", ok: x >= 8 * 60 + 31 && x <= 11 * 60 },
     { code: "B", ok: x >= 11 * 60 + 1 && x <= 19 * 60 },
     { code: "C", ok: x >= 19 * 60 + 1 || x <= 4 * 60 },
   ];
@@ -130,10 +132,10 @@ function assignShiftFromCheckInMinutes(inM) {
 
 function assignGeneralShiftFromCheckInMinutes(inM) {
   const x = ((inM % DAY_MINUTES) + DAY_MINUTES) % DAY_MINUTES;
-  if (x >= 7 * 60 + 1 && x <= 8 * 60 + 30) return "G2";
-  if (x >= 8 * 60 + 31 && x <= 11 * 60) return "G1";
+  if (x >= 7 * 60 + 1 && x <= 8 * 60 + 30) return "G8";
+  if (x >= 8 * 60 + 31 && x <= 11 * 60) return "G9";
   // Keep General employees in General family for out-of-window punches.
-  return x <= 8 * 60 + 30 ? "G2" : "G1";
+  return x <= 8 * 60 + 30 ? "G8" : "G9";
 }
 
 function isGeneralShiftHint(dailyRecord) {
@@ -148,11 +150,18 @@ function isGeneralShiftHint(dailyRecord) {
     .map((v) => String(v).toUpperCase());
 
   return candidates.some(
-    (v) => v.includes("GENERAL") || v === "G" || v === "G1" || v === "G2" || v.includes("MEP-GENERAL")
+    (v) =>
+      v.includes("GENERAL") ||
+      v === "G" ||
+      v === "G9" ||
+      v === "G8" ||
+      v === "G1" ||
+      v === "G2" ||
+      v.includes("MEP-GENERAL")
   );
 }
 
-function buildWorksTimeline(workStart, workEnd, windows, codes = ["G1", "G2", "A", "B", "C"]) {
+function buildWorksTimeline(workStart, workEnd, windows, codes = ["G9", "G8", "A", "B", "C"]) {
   const instances = listCoreInstances(windows, codes, [-1, 0, 1, 2]);
   const raw = [];
   for (const inst of instances) {
@@ -435,7 +444,7 @@ function applyHousekeepingRules(dailyRecord) {
     ci,
     co,
     windows,
-    generalHint || primary === "G1" || primary === "G2" ? ["G1", "G2"] : ["A", "B", "C", "G1", "G2"]
+    generalHint || primary === "G9" || primary === "G8" ? ["G9", "G8"] : ["A", "B", "C", "G9", "G8"]
   );
   const primaryWorksStr = worksForPrimary.map((w) => w.code).join("");
 
@@ -446,7 +455,7 @@ function applyHousekeepingRules(dailyRecord) {
     return singlePunchResult(primaryWorksStr);
   }
 
-  if (generalHint || primary === "G1" || primary === "G2") {
+  if (generalHint || primary === "G9" || primary === "G8") {
     return generalResult(primary, ci, co, windows, primaryWorksStr);
   }
 
