@@ -1,10 +1,13 @@
 const { app, BrowserWindow, dialog, shell } = require("electron");
+const path = require("path");
+const fs = require("fs");
 
 let httpServer = null;
 let serverPort = Number(process.env.PORT || 4000);
 
 async function createWindow(port) {
-  const win = new BrowserWindow({
+  const iconPath = path.resolve(__dirname, "../assets/icon.png");
+  const browserWindowOptions = {
     width: 1280,
     height: 800,
     minWidth: 900,
@@ -14,6 +17,14 @@ async function createWindow(port) {
       nodeIntegration: false,
       contextIsolation: true,
     },
+  };
+  if (fs.existsSync(iconPath)) {
+    // Windows/Linux window/taskbar icon (macOS uses app bundle icon).
+    browserWindowOptions.icon = iconPath;
+  }
+
+  const win = new BrowserWindow({
+    ...browserWindowOptions,
   });
 
   const appOrigin = `http://127.0.0.1:${port}`;
