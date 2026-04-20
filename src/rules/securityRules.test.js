@@ -46,7 +46,7 @@ test("single punch returns EL and assigned shift", () => {
   assert.equal(result.otStatus, "NO");
 });
 
-test("same in/out punch returns EL (not L)", () => {
+test("same in/out punch returns EL", () => {
   const result = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T20:00:00",
@@ -59,7 +59,15 @@ test("same in/out punch returns EL (not L)", () => {
   assert.equal(result.attendanceStatus, "EL");
 });
 
-test("working hours <= 0 returns L", () => {
+test("07:50 check-in allocates A4 not C4", () => {
+  assert.equal(_internal.detectShiftFromPunchTime(7 * 60 + 50), "A4");
+});
+
+test("20:13 check-in allocates C4", () => {
+  assert.equal(_internal.detectShiftFromPunchTime(20 * 60 + 13), "C4");
+});
+
+test("working hours <= 0 with two punches returns EL not L or LC", () => {
   const result = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T14:00:00",
@@ -68,11 +76,12 @@ test("working hours <= 0 returns L", () => {
       workingHours: 0,
     })
   );
-  assert.equal(result.dutyShift, "L");
-  assert.equal(result.attendanceStatus, "L");
+  assert.equal(result.dutyShift, "C4");
+  assert.equal(result.attendanceStatus, "EL");
+  assert.notEqual(result.attendanceStatus, "LC");
 });
 
-test("single C4 when check-in is after 13:00 (no afternoon A4 band)", () => {
+test("14:00 check-in allocates C4 (after 13:00 allocation band)", () => {
   const result = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T14:00:00",
@@ -83,9 +92,21 @@ test("single C4 when check-in is after 13:00 (no afternoon A4 band)", () => {
   );
   assert.equal(result.dutyShift, "C4");
   assert.equal(result.otStatus, "NO");
+  assert.equal(result.attendanceStatus, "EL");
 });
 
-test("single C4 partial remains C4 and not double", () => {
+test("10:30 without roster flag allocates A4 (09:00–13:00 overlap → A4)", () => {
+  assert.equal(_internal.detectShiftFromPunchTime(10 * 60 + 30), "A4");
+});
+
+test("10:30 with explicit general roster allocates G", () => {
+  assert.equal(
+    _internal.allocateSecurityShift(10 * 60 + 30, { employee_shift_name: "Sec-General" }),
+    "G"
+  );
+});
+
+test("20:00 check-in allocates C4", () => {
   const result = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T20:00:00",
@@ -98,7 +119,7 @@ test("single C4 partial remains C4 and not double", () => {
   assert.equal(result.otStatus, "NO");
 });
 
-test("single C4 full gets internal 4h OT", () => {
+test("full single C4 night (12h span) has no OT without full next A4", () => {
   const result = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T20:00:00",
@@ -107,11 +128,11 @@ test("single C4 full gets internal 4h OT", () => {
     })
   );
   assert.equal(result.dutyShift, "C4");
-  assert.equal(result.otHours, 4);
-  assert.equal(result.otStatus, "YES");
+  assert.equal(result.otHours, 0);
+  assert.equal(result.otStatus, "NO");
 });
 
-test("partial A4 to C4 is not double", () => {
+test("A4 long day without full C4 overlap gets no OT", () => {
   const result = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T08:00:00",
@@ -120,109 +141,78 @@ test("partial A4 to C4 is not double", () => {
     })
   );
   assert.equal(result.dutyShift, "A4");
-  assert.notEqual(result.dutyShift, "A4C4");
-  assert.equal(result.otHours, 4);
+  assert.equal(result.otHours, 0);
+  assert.equal(result.otStatus, "NO");
 });
 
-test("15 hours does not qualify for double shift", () => {
+test("A4 through full next C4 gets A4C4 and 12h OT", () => {
   const result = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T08:00:00",
-      checkOut: "2026-04-01T23:00:00",
-      workingHours: 15,
-    })
-  );
-  assert.equal(result.dutyShift, "A4");
-  assert.equal(result.otHours, 4);
-  assert.equal(result.otStatus, "YES");
-});
-
-test("valid A4 to C4 double shift returns A4C4", () => {
-  const result = applySecurityRules(
-    buildRecord({
-      checkIn: "2026-04-01T08:00:00",
-      checkOut: "2026-04-02T04:00:00",
-      workingHours: 20,
+      checkOut: "2026-04-02T08:00:00",
+      workingHours: 24,
     })
   );
   assert.equal(result.dutyShift, "A4C4");
-  assert.equal(result.otHours, 8);
+  assert.equal(result.otHours, 12);
   assert.equal(result.otStatus, "YES");
 });
 
-test("valid C4 to A4 double shift returns C4A4", () => {
+test("C4 through full next A4 gets C4A4 and 12h OT", () => {
   const result = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T20:00:00",
-      checkOut: "2026-04-02T16:00:00",
-      workingHours: 20,
+      checkOut: "2026-04-02T20:00:00",
+      workingHours: 28,
     })
   );
   assert.equal(result.dutyShift, "C4A4");
-  assert.equal(result.otHours, 8);
+  assert.equal(result.otHours, 12);
   assert.equal(result.otStatus, "YES");
 });
 
-test("partial C4 to A4 is not double", () => {
+test("partial C4 without full A4 overlap is not double duty and no OT", () => {
   const result = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T20:00:00",
-      checkOut: "2026-04-02T12:00:00",
-      workingHours: 16,
+      checkOut: "2026-04-02T11:00:00",
+      workingHours: 15,
     })
   );
   assert.equal(result.dutyShift, "C4");
   assert.notEqual(result.dutyShift, "C4A4");
+  assert.equal(result.otHours, 0);
 });
 
-test("general shift has no OT and no mix", () => {
+test("inflated workingHours does not grant OT without full next shift overlap", () => {
+  const result = applySecurityRules(
+    buildRecord({
+      checkIn: "2026-04-01T08:00:00",
+      checkOut: "2026-04-01T18:00:00",
+      punchCount: 2,
+      workingHours: 20,
+    })
+  );
+  assert.equal(result.dutyShift, "A4");
+  assert.equal(result.otHours, 0);
+  assert.notEqual(result.dutyShift, "A4C4");
+});
+
+test("general shift has no OT", () => {
   const result = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T09:00:00",
-      checkOut: "2026-04-01T18:10:00",
-      workingHours: 9.16,
+      checkOut: "2026-04-01T17:50:00",
+      employee_shift_name: "Sec-General",
     })
   );
   assert.equal(result.dutyShift, "G");
   assert.equal(result.otHours, 0);
   assert.equal(result.otStatus, "NO");
+  assert.equal(result.attendanceStatus, "EL");
 });
 
-test("security G on-time before 13:00:59 late boundary", () => {
-  const result = applySecurityRules(
-    buildRecord({
-      checkIn: "2026-04-01T12:30:00",
-      checkOut: "2026-04-01T18:00:00",
-      workingHours: 9,
-    })
-  );
-  assert.equal(result.dutyShift, "G");
-  assert.equal(result.attendanceStatus, "P");
-});
-
-test("security A4 late after 08:30:59", () => {
-  const onTime = applySecurityRules(
-    buildRecord({
-      checkIn: "2026-04-01T08:10:00",
-      checkOut: "2026-04-01T20:00:00",
-      workingHours: 11.83,
-    })
-  );
-  assert.equal(onTime.dutyShift, "A4");
-  assert.equal(onTime.attendanceStatus, "P");
-
-  assert.equal(
-    _internal.resolveAttendance(
-      "A4",
-      { checkOutMinutes: 20 * 60 },
-      { anyPunch: true, singlePunch: false, workingHours: 9 },
-      "2026-04-01T08:31:00"
-    ),
-    "LC"
-  );
-});
-
-test("sec-a4 hint never falls to general", () => {
+test("09:00 check-in with Sec-A4 roster stays A4 (overlap band prefers A4 over G)", () => {
   const result = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T09:00:00",
@@ -231,10 +221,18 @@ test("sec-a4 hint never falls to general", () => {
       employee_shift_name: "Sec-A4",
     })
   );
-  assert.equal(result.dutyShift, "G");
+  assert.equal(result.dutyShift, "A4");
 });
 
-test("c4 boundary at 18:00 is classified as C4", () => {
+test("13:00 check-in allocates A4 (end of A4 allocation window)", () => {
+  assert.equal(_internal.detectShiftFromPunchTime(13 * 60), "A4");
+});
+
+test("13:01 check-in allocates C4", () => {
+  assert.equal(_internal.detectShiftFromPunchTime(13 * 60 + 1), "C4");
+});
+
+test("18:00 check-in allocates C4", () => {
   const result = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T18:00:00",
@@ -245,7 +243,7 @@ test("c4 boundary at 18:00 is classified as C4", () => {
   assert.equal(result.dutyShift, "C4");
 });
 
-test("c4 overnight attendance uses absolute timeline for early logout", () => {
+test("C4 overnight early logout is EL", () => {
   const result = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T20:00:00",
@@ -257,7 +255,7 @@ test("c4 overnight attendance uses absolute timeline for early logout", () => {
   assert.equal(result.attendanceStatus, "EL");
 });
 
-test("attendance grace for C4 uses 20:15", () => {
+test("C4 under 12h span: P becomes EL; LC becomes LC+EL (minimum duty merge)", () => {
   const onGrace = applySecurityRules(
     buildRecord({
       checkIn: "2026-04-01T20:10:00",
@@ -266,7 +264,7 @@ test("attendance grace for C4 uses 20:15", () => {
     })
   );
   assert.equal(onGrace.dutyShift, "C4");
-  assert.equal(onGrace.attendanceStatus, "P");
+  assert.equal(onGrace.attendanceStatus, "EL");
 
   const beyondGrace = applySecurityRules(
     buildRecord({
@@ -275,17 +273,67 @@ test("attendance grace for C4 uses 20:15", () => {
       workingHours: 11.66,
     })
   );
-  assert.equal(beyondGrace.attendanceStatus, "LC");
+  assert.equal(beyondGrace.attendanceStatus, "LC+EL");
+});
+
+test("A4 attendance uses SHIFT_TIMINGS start + 15 for LC", () => {
+  assert.equal(_internal.resolveAttendance(8 * 60 + 31, 20 * 60, "A4"), "LC");
+  assert.equal(_internal.resolveAttendance(8 * 60 + 15, 20 * 60, "A4"), "P");
+});
+
+test("isFullShiftCovered reflects 720-minute overlap with SHIFT_TIMINGS bands", () => {
+  const full = _internal.normalizeInterval({
+    date: "2026-04-01",
+    checkIn: "2026-04-01T08:00:00",
+    checkOut: "2026-04-02T08:00:00",
+  });
+  const { checkInMinutes: ci, checkOutMinutes: co } = full;
+  assert.equal(_internal.isFullShiftCovered(ci, co, "C4"), true);
+  assert.equal(_internal.isFullShiftCovered(ci, co, "A4"), true);
+
+  const partial = _internal.normalizeInterval({
+    date: "2026-04-01",
+    checkIn: "2026-04-01T08:00:00",
+    checkOut: "2026-04-01T18:00:00",
+  });
+  assert.equal(_internal.isFullShiftCovered(partial.checkInMinutes, partial.checkOutMinutes, "C4"), false);
+});
+
+test("OT requires full base and full next shift overlap (full C4 alone is not enough)", () => {
+  const { checkInMinutes: ci, checkOutMinutes: co } = _internal.normalizeInterval({
+    date: "2026-04-01",
+    checkIn: "2026-04-01T20:00:00",
+    checkOut: "2026-04-02T08:00:00",
+  });
+  assert.equal(_internal.isFullShiftCovered(ci, co, "C4"), true);
+  assert.equal(_internal.isFullShiftCovered(ci, co, "A4"), false);
+  const ot = _internal.resolveOt("C4", ci, co);
+  assert.equal(ot.dutyShift, "C4");
+  assert.equal(ot.otHours, 0);
+});
+
+test("mergeMinimumDutyWithPunctuality preserves LC as LC+EL when duty short", () => {
+  assert.equal(_internal.mergeMinimumDutyWithPunctuality("LC", 100, 720), "LC+EL");
+  assert.equal(_internal.mergeMinimumDutyWithPunctuality("P", 100, 720), "EL");
+  assert.equal(_internal.mergeMinimumDutyWithPunctuality("P", 800, 720), "P");
 });
 
 test("driver uses security rules", () => {
   const result = applyDriverRules(
     buildRecord({
       checkIn: "2026-04-01T20:00:00",
-      checkOut: "2026-04-02T16:00:00",
-      workingHours: 20,
+      checkOut: "2026-04-02T20:00:00",
+      workingHours: 28,
     })
   );
   assert.equal(result.dutyShift, "C4A4");
-  assert.equal(result.otHours, 8);
+  assert.equal(result.otHours, 12);
+});
+
+test("assignShift alias matches allocation windows (no G without roster)", () => {
+  assert.equal(_internal.assignShift(2 * 60 + 1), "A4");
+  assert.equal(_internal.assignShift(8 * 60 + 31), "A4");
+  assert.equal(_internal.assignShift(13 * 60), "A4");
+  assert.equal(_internal.assignShift(13 * 60 + 1), "C4");
+  assert.equal(_internal.assignShift(2 * 60), "C4");
 });

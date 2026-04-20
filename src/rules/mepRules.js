@@ -1,5 +1,7 @@
 const DAY_MINUTES = 24 * 60;
 const ATTEND_GRACE = 15;
+/** OT eligibility: completing next shift / G post-core OT threshold may be up to this many minutes short. */
+const OT_GRACE_MINUTES = 15;
 const ALLOWED_TRANSITIONS = { A: "B", B: "C", C: "A" };
 const ABC_CODES = new Set(["A", "B", "C"]);
 /** Full-shift OT hours (additional shifts only; no partial minutes). */
@@ -147,9 +149,9 @@ function buildWorksTimeline(workStart, workEnd, windows) {
 
 function attendanceForShift({ ci, co, shiftStart, shiftEnd }) {
   const inLate = ci > shiftStart + ATTEND_GRACE;
-  const outEarly = co < shiftEnd;
+  const outEarly = co < shiftEnd - ATTEND_GRACE;
   const inOk = ci <= shiftStart + ATTEND_GRACE;
-  const outOk = co >= shiftEnd;
+  const outOk = co >= shiftEnd - ATTEND_GRACE;
   let status = "P";
   if (inOk && outOk) status = "P";
   else if (inLate && outEarly) status = "LC+EL";
@@ -172,7 +174,7 @@ function gOtStatusAndHours(ci, co, windows) {
   if (otMinutes <= 0) {
     return { otStatus: "NO", otHours: 0, attendance: att, shiftStart, shiftEnd, coreEnd };
   }
-  if (otHours >= 3) {
+  if (otMinutes >= 3 * 60 - OT_GRACE_MINUTES) {
     return { otStatus: "YES", otHours, attendance: att, shiftStart, shiftEnd, coreEnd };
   }
   return { otStatus: "NOT_QUALIFIED", otHours, attendance: att, shiftStart, shiftEnd, coreEnd };
@@ -220,7 +222,7 @@ function buildAbcChainAndOt(primary, ci, co, worksMerged, windows) {
   while (chain.length < 3) {
     const nextInst = getNextShiftInstanceInCycle(windows, curCode, curInst);
     if (!nextInst) break;
-    if (co < nextInst.end) {
+    if (co < nextInst.end - OT_GRACE_MINUTES) {
       if (co > curInst.end) {
         return {
           chain,

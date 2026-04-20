@@ -2,6 +2,10 @@ const DAY_MINUTES = 24 * 60;
 const A_END = 15 * 60;
 const B_END = 21 * 60;
 const C_END = 6 * 60 + DAY_MINUTES; // Always next-day end (30:00)
+/** OT: treat next full shift as satisfied if checkout is within this many minutes before nominal end. */
+const OT_GRACE_MINUTES = 15;
+/** Same grace on check-in (late after start + this) and check-out (early leave before end − this). */
+const ATTEND_GRACE_MINUTES = 15;
 
 const FALLBACK_WINDOWS = {
   G9: { code: "G9", start: 9 * 60, end: 18 * 60, overnight: false },
@@ -189,13 +193,13 @@ function buildWorksTimeline(workStart, workEnd, windows, codes = ["G9", "G8", "A
   return merged;
 }
 
-/** 15 min grace on check-in only; check-out vs exact shiftEnd (no grace). */
+/** Late / early vs shift instance bounds with symmetric ATTEND_GRACE_MINUTES on in and out. */
 function attendanceForShift({ ci, co, shiftInstance }) {
   const shiftStart = shiftInstance.start;
   const shiftEnd = shiftInstance.end;
-  const lateThreshold = shiftStart + 15;
+  const lateThreshold = shiftStart + ATTEND_GRACE_MINUTES;
   const lc = ci > lateThreshold;
-  const el = co < shiftEnd;
+  const el = co < shiftEnd - ATTEND_GRACE_MINUTES;
   if (lc && el) return { status: "LC+EL" };
   if (lc) return { status: "LC" };
   if (el) return { status: "EL" };
@@ -320,7 +324,7 @@ function buildAbcChain(primary, ci, co, worksMerged, windows) {
         primaryInst,
       };
     }
-    if (co < bFullEnd) {
+    if (co < bFullEnd - OT_GRACE_MINUTES) {
       return {
         chain: [primary],
         dutyShift: primary,
@@ -352,7 +356,7 @@ function buildAbcChain(primary, ci, co, worksMerged, windows) {
       };
     }
     const cFullEnd = resolveNextShiftEndMinute(primary, primaryInst);
-    if (co < cFullEnd) {
+    if (co < cFullEnd - OT_GRACE_MINUTES) {
       return {
         chain: [primary],
         dutyShift: primary,
@@ -384,7 +388,7 @@ function buildAbcChain(primary, ci, co, worksMerged, windows) {
         primaryInst,
       };
     }
-    if (co < aFullEnd) {
+    if (co < aFullEnd - OT_GRACE_MINUTES) {
       return {
         chain: [primary],
         dutyShift: primary,

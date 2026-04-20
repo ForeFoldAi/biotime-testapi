@@ -1,8 +1,11 @@
 const DAY_MINUTES = 24 * 60;
 const SHIFT_CODE = "G";
-/** General shift 09:00–17:00; 15 min grace: late after 09:15, early leave before 16:45 */
-const LATE_CHECKIN_MIN_EXCLUSIVE = 9 * 60 + 15; // 555 — late if check-in minute > this
-const EARLY_CHECKOUT_MIN_EXCLUSIVE = 16 * 60 + 45; // 1005 — early if check-out minute < this
+const ATTEND_GRACE_MINUTES = 15;
+/** General shift 09:00–17:00 (same calendar day); symmetric grace on in/out vs shift bounds. */
+const SHIFT_START_MIN = 9 * 60;
+const SHIFT_END_MIN = 17 * 60;
+const LATE_CHECKIN_MIN_EXCLUSIVE = SHIFT_START_MIN + ATTEND_GRACE_MINUTES;
+const EARLY_CHECKOUT_MIN_EXCLUSIVE = SHIFT_END_MIN - ATTEND_GRACE_MINUTES;
 
 function toBusinessRelativeMinutes(dateTime, businessDate) {
   if (!dateTime || !businessDate) return null;
