@@ -85,6 +85,7 @@ async function uploadShifts(req, res, next) {
 
     if (isShiftExportRows(rows)) {
       runtimeStore.setShiftExportRows(rows);
+      await stores.shiftExportRows.write(rows);
       responseMeta.shiftExportRows = rows.length;
     }
 
@@ -151,6 +152,7 @@ async function uploadTimetables(req, res, next) {
     }
 
     runtimeStore.setTimetableExportRows(rows);
+    await stores.timetableExportRows.write(rows);
     res.json({
       message: "Timetable export uploaded to in-memory store successfully",
       totalRows: rows.length,

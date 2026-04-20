@@ -7,6 +7,9 @@ const { buildTabularReport } = require("../reports/reportBuilder");
 const { exportReportToExcel } = require("../reports/excelExporter");
 const { startOfMonth, endOfMonth, formatDate, hoursBetween } = require("../utils/dateUtils");
 const { formatHoursToHM } = require("../utils/formatHours");
+const fs = require("fs/promises");
+const path = require("path");
+const { OUTPUT_DIR } = require("../config/env");
 
 function parseMonthYear(query) {
   const today = new Date();
@@ -21,8 +24,15 @@ function parseMonthYear(query) {
 async function generateReport(req, res, next) {
   try {
     const { month, year } = parseMonthYear(req.query);
+    const selectedArea = String(req.query.area || "").trim();
     const shifts = runtimeStore.getShifts();
     const weekoffs = runtimeStore.getWeekoffs();
+    const employeeManagementPayload = await stores.employeeManagement.read();
+    const savedWeekoffs = Array.isArray(employeeManagementPayload?.rows)
+      ? employeeManagementPayload.rows
+      : [];
+    // Saved Employee Management week-offs should override imported defaults.
+    const mergedWeekoffRows = [...weekoffs, ...savedWeekoffs];
     const schedules = runtimeStore.getSchedules();
 
     const start = startOfMonth(year, month);
@@ -33,24 +43,32 @@ async function generateReport(req, res, next) {
       fetchTransactions({ startTime: start, endTime: end }),
     ]);
 
+    const filteredEmployees =
+      !selectedArea || selectedArea.toLowerCase() === "all"
+        ? employees
+        : (employees || []).filter(
+            (employee) => getAreaName(employee).toLowerCase() === selectedArea.toLowerCase()
+          );
+
     const processed = processAttendance({
-      employees,
+      employees: filteredEmployees,
       transactions,
       month,
       year,
       shiftMaster: shifts,
-      weekoffRows: weekoffs,
+      weekoffRows: mergedWeekoffRows,
       scheduleRows: schedules,
     });
 
     const report = buildTabularReport(processed);
-    const excel = await exportReportToExcel(report);
-    await stores.lastReport.write(report);
+    const excel = await exportReportToExcel(processed);
+    await stores.lastReport.write({ ...report, excel, area: selectedArea || "all" });
 
     res.json({
       message: "Monthly report generated successfully",
       report,
       excel,
+      area: selectedArea || "all",
     });
   } catch (error) {
     next(error);
@@ -100,6 +118,22 @@ function getDepartmentName(employee) {
     employee?.department ||
     ""
   );
+}
+
+function getAreaName(employee) {
+  if (Array.isArray(employee?.area)) {
+    return employee.area
+      .map((item) => String(item?.area_name || item?.name || item?.area_code || "").trim())
+      .filter(Boolean)
+      .join(", ");
+  }
+  if (Array.isArray(employee?.areas)) {
+    return employee.areas
+      .map((item) => String(item?.area_name || item?.name || item?.area_code || "").trim())
+      .filter(Boolean)
+      .join(", ");
+  }
+  return String(employee?.area_name || "").trim();
 }
 
 async function getEmployeeCheckinCheckout(req, res, next) {
@@ -191,8 +225,32 @@ async function getLastReport(req, res, next) {
   }
 }
 
+async function downloadReportExcel(req, res, next) {
+  try {
+    const rawName = String(req.params.filename || "").trim();
+    const filename = path.basename(rawName);
+    if (!filename || filename !== rawName) {
+      const error = new Error("Invalid file name.");
+      error.status = 400;
+      throw error;
+    }
+
+    const outputPath = path.join(OUTPUT_DIR, filename);
+    await fs.access(outputPath);
+    return res.download(outputPath, filename);
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      const notFound = new Error("Excel file not found.");
+      notFound.status = 404;
+      return next(notFound);
+    }
+    return next(error);
+  }
+}
+
 module.exports = {
   generateReport,
   getLastReport,
   getEmployeeCheckinCheckout,
+  downloadReportExcel,
 };

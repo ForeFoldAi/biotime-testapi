@@ -59,6 +59,37 @@ function getDepartmentName(employee) {
   );
 }
 
+function getReportDepartmentName(rawDepartmentName) {
+  const raw = String(rawDepartmentName || "").trim();
+  const compact = raw.toUpperCase().replace(/[^A-Z]/g, "");
+  if (compact.includes("PEST")) return "PEST CONTROL";
+  if (compact.includes("LANDSCAPE") || compact.includes("GARDEN") || compact.includes("GARD")) return "LANDSCAPE";
+  return classifyDepartment(raw);
+}
+
+function getDesignation(employee) {
+  const value =
+    employee?.position_name ||
+    employee?.designation?.position_name ||
+    employee?.designation?.name ||
+    employee?.designation?.title ||
+    employee?.position?.position_name ||
+    employee?.position?.name ||
+    employee?.position ||
+    employee?.designation ||
+    employee?.title ||
+    employee?.job_title ||
+    "";
+
+  if (typeof value === "string") return value.trim();
+  if (value && typeof value === "object") {
+    return String(
+      value.position_name || value.name || value.title || value.job_title || ""
+    ).trim();
+  }
+  return String(value || "").trim();
+}
+
 function getPunchDate(transaction) {
   return (
     transaction?.punch_time ||
@@ -97,10 +128,13 @@ function createEmployeeIndex(employees = []) {
   for (const employee of employees) {
     const employeeId = getEmployeeId(employee);
     if (!employeeId) continue;
+    const rawDepartmentName = getDepartmentName(employee);
     index.set(employeeId, {
       employeeId,
       name: getEmployeeName(employee),
-      department: classifyDepartment(getDepartmentName(employee)),
+      department: classifyDepartment(rawDepartmentName),
+      reportDepartment: getReportDepartmentName(rawDepartmentName),
+      designation: getDesignation(employee),
     });
   }
   return index;
@@ -175,16 +209,54 @@ function evaluateWeekOffCode(employeeId, dateObj, groupedTransactions, weeklyOff
   return prevWorked || nextWorked ? "W/O" : "L";
 }
 
+function isStrictPresent(status) {
+  return String(status || "").trim().toUpperCase() === "P";
+}
+
 /** MEP/O&M: weekly off only if an adjacent calendar day has strict Present (P) attendance. */
-function evaluateMepWeeklyOffFromAdjacentPresent(dateObj, weeklyOffDay, getAttendanceStatusForDateStr) {
+function evaluateMepWeeklyOffFromAdjacentPresent(dateObj, weeklyOffDay, getRuleResultForDateStr) {
   const weekday = WEEKDAY_NAMES[dateObj.getDay()];
   if (!weeklyOffDay || weekday !== weeklyOffDay) return null;
 
   const prevStr = formatDate(addDays(dateObj, -1));
   const nextStr = formatDate(addDays(dateObj, 1));
-  const prevP = getAttendanceStatusForDateStr(prevStr) === "P";
-  const nextP = getAttendanceStatusForDateStr(nextStr) === "P";
+  const prevResult = getRuleResultForDateStr(prevStr);
+  const nextResult = getRuleResultForDateStr(nextStr);
+  const prevP = isStrictPresent(prevResult?.attendanceStatus || prevResult?.attendance_status);
+  const nextP = isStrictPresent(nextResult?.attendanceStatus || nextResult?.attendance_status);
   return prevP || nextP ? "W/O" : "L";
+}
+
+function toWeekOffCode(value) {
+  const day = String(value || "").trim().toUpperCase();
+  if (day === "MONDAY") return "mon";
+  if (day === "TUESDAY") return "tue";
+  if (day === "WEDNESDAY") return "wed";
+  if (day === "THURSDAY") return "thu";
+  if (day === "FRIDAY") return "fri";
+  if (day === "SATURDAY") return "sat";
+  if (day === "SUNDAY") return "sun";
+  return "";
+}
+
+function splitCompositeDutyCode(code) {
+  const text = String(code || "").toUpperCase();
+  if (text === "A4C4") return ["A4", "C4"];
+  if (text === "C4A4") return ["C4", "A4"];
+  if (/^[A-Z]{2}$/.test(text)) return [text[0], text[1]];
+  return null;
+}
+
+function formatDisplayCodeWithAttendanceStatus(code, attendanceStatus) {
+  const base = String(code || "L");
+  const status = String(attendanceStatus || "P").toUpperCase();
+  if (!base || base === "L" || base === "W/O" || base === "WO") return base || "L";
+
+  const parts = splitCompositeDutyCode(base);
+  if (parts) {
+    return `${parts[0]}-[${status}]${parts[1]}`;
+  }
+  return `${base}[${status}]`;
 }
 
 function processAttendance({
@@ -214,9 +286,12 @@ function processAttendance({
     const row = {
       employeeId: employee.employeeId,
       employeeName: employee.name,
-      department: employee.department,
-      weekOff: weeklyOffDay || "",
+      department: employee.reportDepartment || employee.department,
+      designation: employee.designation || "",
+      weekOff: toWeekOffCode(weeklyOffDay),
       daily: {},
+      dailyDisplay: {},
+      dailyOt: {},
       totals: { presentDays: 0, otHours: 0 },
     };
 
@@ -257,10 +332,11 @@ function processAttendance({
           employee.department === "HOUSEKEEPING" ||
           employee.department === "LANDSCAPE"
         ) {
-          weekoffCode = evaluateMepWeeklyOffFromAdjacentPresent(dateObj, weeklyOffDay, (ds) => {
-            const cached = ruleCache.get(`${employee.employeeId}|${ds}`);
-            return cached?.attendanceStatus;
-          });
+          weekoffCode = evaluateMepWeeklyOffFromAdjacentPresent(
+            dateObj,
+            weeklyOffDay,
+            (ds) => ruleCache.get(`${employee.employeeId}|${ds}`)
+          );
         } else if (employee.department !== "SECURITY" && employee.department !== "DRIVER") {
           weekoffCode = evaluateWeekOffCode(
             employee.employeeId,
@@ -270,13 +346,20 @@ function processAttendance({
           );
         }
 
-        row.daily[day] = weekoffCode || "L";
+        const baseCode = weekoffCode || "L";
+        row.daily[day] = baseCode;
+        row.dailyDisplay[day] = baseCode;
+        row.dailyOt[day] = 0;
         continue;
       }
 
       const ruleResult = ruleCache.get(transactionKey);
-      row.daily[day] = ruleResult.code || ruleResult.dutyShift || "L";
-      if ((ruleResult.attendanceStatus || "P") === "P") {
+      const baseCode = ruleResult.code || ruleResult.dutyShift || "L";
+      const attendanceStatus = ruleResult.attendanceStatus || "P";
+      row.daily[day] = baseCode;
+      row.dailyDisplay[day] = formatDisplayCodeWithAttendanceStatus(baseCode, attendanceStatus);
+      row.dailyOt[day] = ruleResult.otStatus === "YES" ? Number(ruleResult.otHours || 0) : 0;
+      if (attendanceStatus === "P") {
         row.totals.presentDays += 1;
       }
       if (ruleResult.otStatus === "YES") {

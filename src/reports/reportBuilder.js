@@ -16,11 +16,11 @@ function buildTabularReport(processedAttendance) {
       employee_id: row.employeeId,
       employee_name: row.employeeName,
       department: row.department,
+      designation: row.designation || "",
       week_off: row.weekOff || "",
-      ...dayColumns,
       present_days: row.totals.presentDays,
       ot_hours: formatHoursToHM(rawOt),
-      ot_hours_decimal: rawOt,
+      ...dayColumns,
     };
   });
 
@@ -28,7 +28,16 @@ function buildTabularReport(processedAttendance) {
     month,
     year,
     generatedAt: processedAttendance.generatedAt,
-    columns: ["employee_name", "week_off", ...days.map(String)],
+    columns: [
+      "employee_id",
+      "employee_name",
+      "department",
+      "designation",
+      "week_off",
+      "present_days",
+      "ot_hours",
+      ...days.map(String),
+    ],
     rows: reportRows,
   };
 }

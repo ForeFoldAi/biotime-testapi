@@ -1,0 +1,45 @@
+{
+  "rows": [
+    {
+      "employee_id": "10",
+      "week_off": "friday"
+    },
+    {
+      "employee_id": "27",
+      "week_off": "friday"
+    },
+    {
+      "employee_id": "66",
+      "week_off": "wednesday"
+    },
+    {
+      "employee_id": "75",
+      "week_off": "thursday"
+    },
+    {
+      "employee_id": "CG89140",
+      "week_off": "monday"
+    },
+    {
+      "employee_id": "CG98508",
+      "week_off": "wednesday"
+    },
+    {
+      "employee_id": "CGP100755",
+      "week_off": "friday"
+    },
+    {
+      "employee_id": "CGP100756",
+      "week_off": "thursday"
+    },
+    {
+      "employee_id": "CGP102349",
+      "week_off": "monday"
+    },
+    {
+      "employee_id": "CGP59809",
+      "week_off": "monday"
+    }
+  ],
+  "updatedAt": "2026-04-20T09:15:08.134Z"
+}

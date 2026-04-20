@@ -62,14 +62,18 @@ function setEmployeeScheduleExportRows(value) {
 
 async function hydrateFromPersistentStores(stores) {
   try {
-    const [shifts, weekoffs, schedules] = await Promise.all([
+    const [shifts, weekoffs, schedules, shiftExportRows, timetableExportRows] = await Promise.all([
       stores.shifts.read(),
       stores.weekoffs.read(),
       stores.schedules.read(),
+      stores.shiftExportRows ? stores.shiftExportRows.read() : [],
+      stores.timetableExportRows ? stores.timetableExportRows.read() : [],
     ]);
     if (shifts && Object.keys(shifts).length > 0) setShifts(shifts);
     if (Array.isArray(weekoffs)) setWeekoffs(weekoffs);
     if (Array.isArray(schedules)) setSchedules(schedules);
+    if (Array.isArray(shiftExportRows)) setShiftExportRows(shiftExportRows);
+    if (Array.isArray(timetableExportRows)) setTimetableExportRows(timetableExportRows);
   } catch (error) {
     // Runtime store keeps defaults if persistence read fails.
   }

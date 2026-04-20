@@ -4,8 +4,14 @@
   "description": "Employee Attendance and Overtime Calculation System",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js"
+    "start": "npm run build:ui && electron electron/main.js",
+    "server": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "build:ui": "vite build --config ui/vite.config.mjs",
+    "dev:ui": "vite --config ui/vite.config.mjs",
+    "dist:win": "npm run build:ui && electron-builder --win nsis",
+    "dist:dmg": "npm run build:ui && electron-builder --mac dmg",
+    "dist": "npm run build:ui && electron-builder --win nsis --mac dmg"
   },
   "keywords": [
     "attendance",
@@ -15,11 +21,63 @@
   ],
   "author": "",
   "license": "ISC",
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.2",
+    "autoprefixer": "^10.4.21",
+    "electron": "^35.0.0",
+    "electron-builder": "^26.8.1",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "vite": "^7.1.7"
+  },
   "dependencies": {
     "axios": "^1.9.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "lucide-react": "^0.544.0",
     "multer": "^2.0.2",
-    "xlsx": "^0.18.5"
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "tailwind-merge": "^3.3.1",
+    "xlsx": "^0.18.5",
+    "xlsx-js-style": "^1.2.0"
+  },
+  "build": {
+    "appId": "com.forefoldai.employeeattendance",
+    "productName": "Employee Attendance OT System",
+    "directories": {
+      "output": "dist-desktop"
+    },
+    "asar": true,
+    "files": [
+      "electron/**/*",
+      "src/**/*",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "extraMetadata": {
+      "main": "electron/main.js"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "dmg": {
+      "title": "${productName} ${version}"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "${productName}-${version}-${arch}-setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }
