@@ -1,1 +1,107 @@
-[]
+[
+  {
+    "shift_name": "MEP C Shift",
+    "timetable": "MEP C Shift",
+    "unit": "Week",
+    "cycle": "4",
+    "auto_shift": "Yes"
+  },
+  {
+    "shift_name": "Sec-C4",
+    "timetable": "Sec-C4",
+    "unit": "Week",
+    "cycle": "4",
+    "auto_shift": "Yes"
+  },
+  {
+    "shift_name": "MEP B Shift",
+    "timetable": "MEP B Shift",
+    "unit": "Week",
+    "cycle": "4",
+    "auto_shift": "Yes"
+  },
+  {
+    "shift_name": "MEP-A Shift",
+    "timetable": "MEP-A Shift",
+    "unit": "Week",
+    "cycle": "4",
+    "auto_shift": "Yes"
+  },
+  {
+    "shift_name": "Sec-General",
+    "timetable": "Sec-General",
+    "unit": "Week",
+    "cycle": "4",
+    "auto_shift": "No"
+  },
+  {
+    "shift_name": "HK-C9",
+    "timetable": "HK-C9",
+    "unit": "Week",
+    "cycle": "4",
+    "auto_shift": "Yes"
+  },
+  {
+    "shift_name": "MEP-General",
+    "timetable": "MEP-General",
+    "unit": "Week",
+    "cycle": "4",
+    "auto_shift": "No"
+  },
+  {
+    "shift_name": "HK-B9",
+    "timetable": "HK-B9",
+    "unit": "Week",
+    "cycle": "4",
+    "auto_shift": "Yes"
+  },
+  {
+    "shift_name": "HK-A6",
+    "timetable": "HK-A6",
+    "unit": "Week",
+    "cycle": "4",
+    "auto_shift": "Yes"
+  },
+  {
+    "shift_name": "HK-General",
+    "timetable": "HK-General",
+    "unit": "Week",
+    "cycle": "4",
+    "auto_shift": "No"
+  },
+  {
+    "shift_name": "Landscape",
+    "timetable": "Landscape",
+    "unit": "Week",
+    "cycle": "4",
+    "auto_shift": "No"
+  },
+  {
+    "shift_name": "Pest Control",
+    "timetable": "Pest Control",
+    "unit": "Week",
+    "cycle": "4",
+    "auto_shift": "No"
+  },
+  {
+    "shift_name": "Sec-A4",
+    "timetable": "Sec-A4",
+    "unit": "Week",
+    "cycle": "4",
+    "auto_shift": "Yes"
+  },
+  {
+    "shift_name": "Weekoff",
+    "timetable": "General Time Table",
+    "unit": "Week",
+    "cycle": "1",
+    "auto_shift": "No"
+  },
+  {
+    "shift_name": "General Shift",
+    "timetable": "General Time Table",
+    "unit": "Week",
+    "cycle": "1",
+    "auto_shift": "No"
+  }
+]

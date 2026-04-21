@@ -1,4 +1,4 @@
-# Employee Attendance and OT System
+# ForeFold Report Generator
 
 Node.js + Express backend for attendance and overtime calculation using BioTime APIs, Excel masters, and JSON-based storage.
 

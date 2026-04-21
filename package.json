@@ -1,7 +1,7 @@
 {
-  "name": "employee-attendance-ot-system",
+  "name": "forefold-report-generator",
   "version": "1.0.0",
-  "description": "Employee Attendance and Overtime Calculation System",
+  "description": "ForeFold Report Generator — attendance and OT reporting",
   "main": "src/server.js",
   "scripts": {
     "start": "npm run build:ui && electron electron/main.js",
@@ -45,8 +45,8 @@
     "xlsx-js-style": "^1.2.0"
   },
   "build": {
-    "appId": "com.forefoldai.employeeattendance",
-    "productName": "Employee Attendance OT System",
+    "appId": "com.forefoldai.forefoldreportgenerator",
+    "productName": "ForeFold Report Generator",
     "directories": {
       "output": "dist-desktop",
       "buildResources": "assets"
@@ -59,7 +59,8 @@
       "node_modules/**/*"
     ],
     "extraMetadata": {
-      "main": "electron/main.js"
+      "main": "electron/main.js",
+      "productName": "ForeFold Report Generator"
     },
     "mac": {
       "target": [
@@ -75,12 +76,15 @@
       "target": [
         "nsis"
       ],
-      "icon": "assets/icon.ico",
+      "icon": "assets/icon.png",
+      "executableName": "ForeFoldReportGenerator",
       "artifactName": "${productName}-${version}-${arch}-setup.${ext}"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "ForeFold Report Generator",
+      "uninstallDisplayName": "ForeFold Report Generator"
     }
   }
 }

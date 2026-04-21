@@ -21,6 +21,8 @@ const C = {
   sun_hdr: "FFC00000",
   white: "FFFFFFFF",
   black: "FF000000",
+  /** Duty / status code Y (distinct from leave; was uncolored before) */
+  y_mark: "FFE8DAEF",
 };
 
 const COLUMNS = {
@@ -67,6 +69,28 @@ const STATUS = {
   WEEK_OFF: "W/O",
   PUB_HOL: "PH",
 };
+
+/** Green "present" fill and Present/Total Present counts: strict P only (incl. G[P]-style display). */
+function isExcelStrictPresent(code, displayCode) {
+  const c = String(code || "").trim().toUpperCase();
+  if (c === STATUS.PRESENT) return true;
+  const d = String(displayCode || "");
+  return /\[P\]/.test(d);
+}
+
+function isExcelManDay(code) {
+  const normalized = String(code || "").trim().toUpperCase();
+  return (
+    normalized === STATUS.PRESENT ||
+    normalized === STATUS.PARTIAL ||
+    ["G", "G8", "G9", "A", "B", "C", "A4", "C4", "A4C4", "C4A4"].includes(normalized)
+  );
+}
+
+/** Late / early / combo markers live in display text (e.g. B[LC+EL], C4[EL]), not in base duty code. */
+function displayHasPartialAttendance(displayCode) {
+  return /\[(LC\+EL|LC|EL)\]/i.test(String(displayCode || ""));
+}
 
 function getFont(bold = false, size = 8, color = C.black) {
   return { name: "Arial", bold, sz: size, color: { rgb: color } };
@@ -189,22 +213,20 @@ function sortDepartmentRows(rows) {
   });
 }
 
-function getStatusBackgroundColor(statusCode, hasOt = false, isOTRow = false) {
+function getStatusBackgroundColor(statusCode, hasOt = false, isOTRow = false, displayCode = "") {
   if (isOTRow) return hasOt ? C.ot_day : C.ot_row_bg;
   const normalized = String(statusCode || "").toUpperCase();
+  const display = String(displayCode || "");
   if (normalized === STATUS.PUB_HOL) return C.pubhol;
   if (normalized === STATUS.WEEK_OFF || normalized === "WO") return C.weekoff;
   if (normalized === STATUS.LEAVE || normalized === "EL") return C.leave;
   if (normalized === STATUS.PARTIAL || normalized === "LC" || normalized === "LC+EL") return C.partial;
+  if (displayHasPartialAttendance(display)) return C.partial;
+  if (normalized === "Y" || display.trim().toUpperCase() === "Y") return C.y_mark;
   if (hasOt && normalized && normalized !== STATUS.LEAVE && normalized !== STATUS.WEEK_OFF && normalized !== "WO") {
     return C.ot_day;
   }
-  if (normalized === STATUS.PRESENT || normalized === "G" || normalized === "A" || normalized === "B" || normalized === "C") {
-    return C.present;
-  }
-  if (normalized === "A4" || normalized === "C4" || normalized === "A4C4" || normalized === "C4A4") {
-    return C.present;
-  }
+  if (isExcelStrictPresent(statusCode, displayCode)) return C.present;
   return null;
 }
 
@@ -236,7 +258,7 @@ function buildHeaders(ws, merges, context) {
   addMerge(merges, 0, splitCol + 1, 0, lastCol);
   addMerge(merges, 1, 0, 1, lastCol);
 
-  setCell(ws, 0, 0, "AUINFOCITY", STYLES.titleLeft);
+  setCell(ws, 0, 0, "AU INFOCITY", STYLES.titleLeft);
   setCell(ws, 0, splitCol + 1, "Powered by forefoldai.com", STYLES.titleRight);
   for (let c = 1; c <= splitCol; c += 1) setCell(ws, 0, c, "", STYLES.titleLeft);
   for (let c = splitCol + 2; c <= lastCol; c += 1) setCell(ws, 0, c, "", STYLES.titleRight);
@@ -275,17 +297,19 @@ function summarizeRow(row, days, year, month) {
   const out = { present: 0, wo: 0, ot: 0, ph: 0, totalPresent: 0, totalManDays: 0 };
   for (const day of days) {
     const code = String(row.daily?.[day] || "").toUpperCase();
+    const display = String(row.dailyDisplay?.[day] || row.daily?.[day] || "");
     const dateKey = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const dayOt = Number(row.dailyOt?.[day] || row.otHours?.[dateKey] || 0);
-    const isPresent = code === STATUS.PRESENT || code === STATUS.PARTIAL || ["G", "A", "B", "C", "A4", "C4", "A4C4", "C4A4"].includes(code);
+    const isStrictP = isExcelStrictPresent(code, display);
+    const isManDay = isExcelManDay(code);
     const isWeekoff = code === STATUS.WEEK_OFF || code === "WO";
     const isPh = code === STATUS.PUB_HOL;
-    if (isPresent) out.present += 1;
+    if (isStrictP) out.present += 1;
     if (isWeekoff) out.wo += 1;
     if (isPh) out.ph += 1;
     if (dayOt > 0) out.ot += 1;
-    if (isPresent || isWeekoff || isPh) out.totalPresent += 1;
-    if (isPresent) out.totalManDays += 1;
+    if (isStrictP) out.totalPresent += 1;
+    if (isManDay) out.totalManDays += 1;
   }
   return out;
 }
@@ -365,8 +389,8 @@ function buildDepartmentSheet(processedReport, department, rows) {
       const code = String(row.daily?.[day] || "L");
       const displayCode = String(row.dailyDisplay?.[day] || code);
       const dayOt = Number(row.dailyOt?.[day] || 0);
-      const fillMain = getStatusBackgroundColor(code, dayOt > 0, false);
-      const fillOt = getStatusBackgroundColor(code, dayOt > 0, true);
+      const fillMain = getStatusBackgroundColor(code, dayOt > 0, false, displayCode);
+      const fillOt = getStatusBackgroundColor(code, dayOt > 0, true, displayCode);
       setCell(
         ws,
         mainRow,
@@ -383,15 +407,16 @@ function buildDepartmentSheet(processedReport, department, rows) {
       );
 
       const normalized = code.toUpperCase();
-      const isPresent = normalized === STATUS.PRESENT || normalized === STATUS.PARTIAL || ["G", "A", "B", "C", "A4", "C4", "A4C4", "C4A4"].includes(normalized);
+      const isStrictP = isExcelStrictPresent(code, displayCode);
+      const isManDay = isExcelManDay(code);
       const isWeekoff = normalized === STATUS.WEEK_OFF || normalized === "WO";
       const isPh = normalized === STATUS.PUB_HOL;
-      if (isPresent) perDayTotals[dayIdx].present += 1;
+      if (isStrictP) perDayTotals[dayIdx].present += 1;
       if (isWeekoff) perDayTotals[dayIdx].wo += 1;
       if (isPh) perDayTotals[dayIdx].ph += 1;
       if (dayOt > 0) perDayTotals[dayIdx].ot += 1;
-      if (isPresent || isWeekoff || isPh) perDayTotals[dayIdx].totalPresent += 1;
-      if (isPresent) perDayTotals[dayIdx].totalManDays += 1;
+      if (isStrictP) perDayTotals[dayIdx].totalPresent += 1;
+      if (isManDay) perDayTotals[dayIdx].totalManDays += 1;
     });
 
     // summary columns

@@ -259,6 +259,22 @@ function formatDisplayCodeWithAttendanceStatus(code, attendanceStatus) {
   return `${base}[${status}]`;
 }
 
+/** Housekeeping general shifts should report as G8 / G9, not legacy G / G1 / G2. */
+function normalizeHousekeepingDailyCode(baseCode, ruleResult) {
+  const u = String(baseCode || "").trim().toUpperCase();
+  if (u === "G8" || u === "G9") return baseCode;
+  if (u === "G2") return "G8";
+  if (u === "G1" || u === "G") {
+    const ns = String(ruleResult?.normalShiftCode || ruleResult?.normal_shift_code || "").toUpperCase();
+    if (ns === "G8" || ns === "G9") return ns;
+    const wt = String(ruleResult?.worksTimeline || ruleResult?.works_timeline || "");
+    if (wt.toUpperCase().startsWith("G8")) return "G8";
+    if (wt.toUpperCase().startsWith("G9")) return "G9";
+    return "G9";
+  }
+  return baseCode;
+}
+
 function processAttendance({
   employees,
   transactions,
@@ -354,7 +370,10 @@ function processAttendance({
       }
 
       const ruleResult = ruleCache.get(transactionKey);
-      const baseCode = ruleResult.code || ruleResult.dutyShift || "L";
+      let baseCode = ruleResult.code || ruleResult.dutyShift || "L";
+      if (employee.department === "HOUSEKEEPING") {
+        baseCode = normalizeHousekeepingDailyCode(baseCode, ruleResult);
+      }
       const attendanceStatus = ruleResult.attendanceStatus || "P";
       row.daily[day] = baseCode;
       row.dailyDisplay[day] = formatDisplayCodeWithAttendanceStatus(baseCode, attendanceStatus);

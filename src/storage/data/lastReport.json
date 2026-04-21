@@ -1,7 +1,7 @@
 {
   "month": 4,
   "year": 2026,
-  "generatedAt": "2026-04-20T10:16:18.349Z",
+  "generatedAt": "2026-04-21T06:47:54.768Z",
   "columns": [
     "employee_id",
     "employee_name",
@@ -77,7 +77,7 @@
       "employee_name": "G MADDAMMA",
       "department": "LANDSCAPE",
       "designation": "Gardner",
-      "week_off": "fri",
+      "week_off": "wed",
       "present_days": 0,
       "ot_hours": "0 hr 0 mins"
     },
@@ -116,7 +116,7 @@
       "employee_name": "K HARI",
       "department": "PEST CONTROL",
       "designation": "Pest Control",
-      "week_off": "fri",
+      "week_off": "",
       "present_days": 0,
       "ot_hours": "0 hr 0 mins"
     },
@@ -134,13 +134,13 @@
       "11": "G",
       "12": "L",
       "13": "L",
-      "14": "L",
+      "14": "W/O",
       "15": "G",
       "16": "G",
       "17": "G",
       "18": "G",
       "19": "L",
-      "20": "L",
+      "20": "G",
       "21": "L",
       "22": "L",
       "23": "L",
@@ -155,8 +155,8 @@
       "employee_name": "M NARSAMMA",
       "department": "LANDSCAPE",
       "designation": "Gardner",
-      "week_off": "wed",
-      "present_days": 8,
+      "week_off": "tue",
+      "present_days": 9,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -171,15 +171,15 @@
       "9": "L",
       "10": "G",
       "11": "G",
-      "12": "L",
+      "12": "W/O",
       "13": "L",
       "14": "L",
       "15": "L",
       "16": "L",
       "17": "G",
       "18": "L",
-      "19": "L",
-      "20": "L",
+      "19": "W/O",
+      "20": "G",
       "21": "L",
       "22": "L",
       "23": "L",
@@ -194,8 +194,8 @@
       "employee_name": "M SAIDAPPA",
       "department": "LANDSCAPE",
       "designation": "Gardner",
-      "week_off": "thu",
-      "present_days": 4,
+      "week_off": "sun",
+      "present_days": 5,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -335,7 +335,7 @@
       "17": "C4",
       "18": "C4",
       "19": "A4",
-      "20": "L",
+      "20": "C4",
       "21": "L",
       "22": "L",
       "23": "L",
@@ -920,7 +920,7 @@
       "17": "C4",
       "18": "C4",
       "19": "A4",
-      "20": "L",
+      "20": "C4",
       "21": "L",
       "22": "L",
       "23": "L",
@@ -936,8 +936,8 @@
       "department": "SECURITY",
       "designation": "Security Guard",
       "week_off": "",
-      "present_days": 2,
-      "ot_hours": "8 hr 0 mins"
+      "present_days": 3,
+      "ot_hours": "12 hr 0 mins"
     },
     {
       "1": "L",
@@ -1349,7 +1349,7 @@
       "17": "L",
       "18": "L",
       "19": "C4",
-      "20": "L",
+      "20": "C4",
       "21": "L",
       "22": "L",
       "23": "L",
@@ -1676,7 +1676,7 @@
       "employee_name": "BHUPEN PAYENG",
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
-      "week_off": "mon",
+      "week_off": "",
       "present_days": 0,
       "ot_hours": "0 hr 0 mins"
     },
@@ -1700,7 +1700,7 @@
       "17": "G8",
       "18": "G8",
       "19": "L",
-      "20": "L",
+      "20": "G8",
       "21": "L",
       "22": "L",
       "23": "L",
@@ -1715,8 +1715,8 @@
       "employee_name": "T.SWATHI",
       "department": "HOUSEKEEPING",
       "designation": "Lady Supervisor",
-      "week_off": "wed",
-      "present_days": 11,
+      "week_off": "",
+      "present_days": 12,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -1754,7 +1754,7 @@
       "employee_name": "P.LAXMI",
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
-      "week_off": "fri",
+      "week_off": "",
       "present_days": 0,
       "ot_hours": "0 hr 0 mins"
     },
@@ -1793,7 +1793,7 @@
       "employee_name": "SUNIL NARAH",
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
-      "week_off": "thu",
+      "week_off": "",
       "present_days": 0,
       "ot_hours": "0 hr 0 mins"
     },
@@ -1832,7 +1832,7 @@
       "employee_name": "RUBI BEGUM",
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
-      "week_off": "mon",
+      "week_off": "",
       "present_days": 0,
       "ot_hours": "0 hr 0 mins"
     },
@@ -2105,7 +2105,7 @@
       "employee_name": "G.INDIRA",
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
-      "week_off": "mon",
+      "week_off": "",
       "present_days": 3,
       "ot_hours": "9 hr 0 mins"
     },
@@ -3104,7 +3104,7 @@
       "17": "L",
       "18": "L",
       "19": "L",
-      "20": "L",
+      "20": "C",
       "21": "L",
       "22": "L",
       "23": "L",
@@ -3572,7 +3572,7 @@
       "17": "L",
       "18": "L",
       "19": "C",
-      "20": "L",
+      "20": "C",
       "21": "L",
       "22": "L",
       "23": "L",
@@ -3689,7 +3689,7 @@
       "17": "B",
       "18": "B",
       "19": "L",
-      "20": "L",
+      "20": "B",
       "21": "L",
       "22": "L",
       "23": "L",
@@ -3705,7 +3705,7 @@
       "department": "HOUSEKEEPING",
       "designation": "Supervisor",
       "week_off": "",
-      "present_days": 13,
+      "present_days": 14,
       "ot_hours": "18 hr 0 mins"
     },
     {
@@ -4001,7 +4001,7 @@
       "17": "B",
       "18": "BC",
       "19": "B",
-      "20": "L",
+      "20": "C",
       "21": "L",
       "22": "L",
       "23": "L",
@@ -4017,7 +4017,7 @@
       "department": "MEP",
       "designation": "DG Operator",
       "week_off": "",
-      "present_days": 9,
+      "present_days": 10,
       "ot_hours": "57 hr 0 mins"
     },
     {
@@ -4157,8 +4157,8 @@
       "17": "C",
       "18": "L",
       "19": "A",
-      "20": "L",
-      "21": "L",
+      "20": "C",
+      "21": "A",
       "22": "L",
       "23": "L",
       "24": "L",
@@ -4173,7 +4173,7 @@
       "department": "MEP",
       "designation": "Plumber",
       "week_off": "",
-      "present_days": 11,
+      "present_days": 12,
       "ot_hours": "10 hr 0 mins"
     },
     {
@@ -4290,7 +4290,7 @@
       "department": "MEP",
       "designation": "Plumber",
       "week_off": "",
-      "present_days": 9,
+      "present_days": 10,
       "ot_hours": "24 hr 0 mins"
     },
     {
@@ -4329,7 +4329,7 @@
       "department": "MEP",
       "designation": "HVAC Supervisor",
       "week_off": "",
-      "present_days": 12,
+      "present_days": 13,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -4563,7 +4563,7 @@
       "department": "MEP",
       "designation": "Electrician",
       "week_off": "",
-      "present_days": 8,
+      "present_days": 9,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -4587,7 +4587,7 @@
       "18": "B",
       "19": "C",
       "20": "L",
-      "21": "L",
+      "21": "A",
       "22": "L",
       "23": "L",
       "24": "L",
@@ -5031,7 +5031,7 @@
       "department": "MEP",
       "designation": "HVAC Technician",
       "week_off": "",
-      "present_days": 13,
+      "present_days": 14,
       "ot_hours": "40 hr 0 mins"
     },
     {

@@ -406,13 +406,12 @@ function App() {
       selectedEmployeeIds.includes(item.employee_id)
     );
     const canBulkAssign = selectedRows.length > 1 && selectedEmployeeIds.includes(row.employee_id);
-    const targetIds = canBulkAssign
-      ? selectedRows
-          .filter((item) => item.has_day_selectors)
-          .map((item) => item.employee_id)
+    const eligibleRows = canBulkAssign
+      ? selectedRows.filter((item) => item.has_day_selectors)
       : row.has_day_selectors
-      ? [row.employee_id]
+      ? [row]
       : [];
+    const targetIds = eligibleRows.map((item) => item.employee_id);
 
     if (targetIds.length === 0) {
       setStatusType("error");
@@ -420,23 +419,31 @@ function App() {
       return;
     }
 
+    const shouldClearWeekOff = canBulkAssign
+      ? eligibleRows.every((item) => item.week_off === day)
+      : row.week_off === day;
+
     setEmployeeRows((prev) =>
       prev.map((item) => {
         if (!targetIds.includes(item.employee_id)) return item;
         const nextWeekDays = WEEK_DAY_OPTIONS.reduce((acc, option) => {
-          acc[option.key] = option.key === day;
+          acc[option.key] = shouldClearWeekOff ? false : option.key === day;
           return acc;
         }, {});
         return {
           ...item,
-          week_off: day,
+          week_off: shouldClearWeekOff ? "" : day,
           week_days: nextWeekDays,
         };
       })
     );
     setStatusType("success");
     setStatusText(
-      canBulkAssign
+      shouldClearWeekOff
+        ? canBulkAssign
+          ? `Cleared weekly off for ${targetIds.length} employees.`
+          : `Cleared weekly off for ${row.employee_name}.`
+        : canBulkAssign
         ? `Assigned ${day} to ${targetIds.length} employees.`
         : `Assigned ${day} to ${row.employee_name}.`
     );
