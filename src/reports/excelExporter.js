@@ -259,7 +259,7 @@ function buildHeaders(ws, merges, context) {
   addMerge(merges, 1, 0, 1, lastCol);
 
   setCell(ws, 0, 0, "AU INFOCITY", STYLES.titleLeft);
-  setCell(ws, 0, splitCol + 1, "Powered by forefoldai.com", STYLES.titleRight);
+  setCell(ws, 0, splitCol + 1, "Powered by ForeFoldAi.com", STYLES.titleRight);
   for (let c = 1; c <= splitCol; c += 1) setCell(ws, 0, c, "", STYLES.titleLeft);
   for (let c = splitCol + 2; c <= lastCol; c += 1) setCell(ws, 0, c, "", STYLES.titleRight);
 
