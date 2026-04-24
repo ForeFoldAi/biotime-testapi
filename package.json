@@ -9,9 +9,11 @@
     "dev": "node --watch src/server.js",
     "build:ui": "vite build --config ui/vite.config.mjs",
     "dev:ui": "vite --config ui/vite.config.mjs",
-    "dist:win": "npm run build:ui && electron-builder --win nsis",
+    "dist": "npm run build:ui && electron-builder",
+    "dist:win": "npm run build:ui && electron-builder --win nsis --x64",
+    "dist:win:arm64": "npm run build:ui && electron-builder --win nsis --arm64",
     "dist:dmg": "npm run build:ui && electron-builder --mac dmg",
-    "dist": "npm run build:ui && electron-builder --win nsis --mac dmg"
+    "dist:all": "npm run build:ui && electron-builder --win nsis --mac dmg"
   },
   "keywords": [
     "attendance",
@@ -53,6 +55,7 @@
     },
     "asar": true,
     "files": [
+      "assets/**/*",
       "electron/**/*",
       "src/**/*",
       "package.json",
@@ -74,7 +77,12 @@
     },
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "icon": "assets/icon.ico",
       "executableName": "ForeFoldReportGenerator",

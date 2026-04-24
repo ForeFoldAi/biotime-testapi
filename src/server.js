@@ -4,12 +4,14 @@ const runtimeStore = require("./storage/runtimeStore");
 const { ensureDir } = require("./utils/fileUtils");
 const app = require("./app");
 
+const LOCAL_HOST = "127.0.0.1";
+
 async function listenOnPort(appInstance, requestedPort) {
   return new Promise((resolve, reject) => {
-    const server = appInstance.listen(requestedPort, () => {
+    const server = appInstance.listen(requestedPort, LOCAL_HOST, () => {
       const address = server.address();
       const activePort = typeof address === "object" && address ? address.port : requestedPort;
-      console.log(`Server running on http://localhost:${activePort}`);
+      console.log(`Server running on http://${LOCAL_HOST}:${activePort}`);
       resolve({ server, port: activePort });
     });
     server.on("error", reject);

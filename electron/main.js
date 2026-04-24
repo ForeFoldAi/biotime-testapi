@@ -105,6 +105,8 @@ if (!gotLock) {
 
       // Use a writable location in packaged apps (outside app.asar).
       process.env.APP_DATA_DIR = app.getPath("userData");
+      // Ensures src/config/env.js uses user-writable paths (not read-only app.asar).
+      process.env.FOREFOLD_IS_PACKAGED = app.isPackaged ? "1" : "0";
       const { startServer } = require("../src/server");
       const { server, port } = await startServer();
       httpServer = server;

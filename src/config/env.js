@@ -2,7 +2,12 @@ const path = require("path");
 const os = require("os");
 
 const ROOT_DIR = path.resolve(__dirname, "../../");
-const IS_PACKAGED = ROOT_DIR.includes("app.asar");
+// Prefer Electron's authoritative flag (set in electron/main.js before src loads).
+// Fallback: path check (Windows may use backslashes; still contains "app.asar").
+const IS_PACKAGED =
+  process.env.FOREFOLD_IS_PACKAGED === "1" ||
+  path.normalize(ROOT_DIR).includes(`${path.sep}app.asar`) ||
+  path.normalize(ROOT_DIR).endsWith("app.asar");
 const IS_PRODUCTION = String(process.env.NODE_ENV || "").toLowerCase() === "production";
 const APP_DATA_ROOT =
   process.env.APP_DATA_DIR ||
