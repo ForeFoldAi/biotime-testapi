@@ -23,10 +23,7 @@ const {
   getTransactionsData,
 } = require("./controllers/apiDataController");
 const { getResourceList } = require("./controllers/listController");
-const {
-  getEmployeeManagementData,
-  saveEmployeeManagementData,
-} = require("./controllers/employeeManagementController");
+const { getEmployeeManagementData } = require("./controllers/employeeManagementController");
 
 const app = express();
 
@@ -57,7 +54,6 @@ app.get("/api/data/all", getAllApiData);
 app.get("/api/table/attendance", getAttendanceTableData);
 app.get("/api/list/:resource", getResourceList);
 app.get("/employee-management/data", getEmployeeManagementData);
-app.post("/employee-management/save", saveEmployeeManagementData);
 
 app.use((error, req, res, next) => {
   console.error(error);

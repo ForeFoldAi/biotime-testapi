@@ -12,7 +12,6 @@ import {
   Loader2,
   LogIn,
   RefreshCw,
-  Save,
   Upload,
   UploadCloud,
   Users,
@@ -25,15 +24,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const DEFAULT_COMPANY = "auinfocity.itimedev.minervaiot.com";
-const WEEK_DAY_OPTIONS = [
-  { key: "monday", shortLabel: "Mon" },
-  { key: "tuesday", shortLabel: "Tue" },
-  { key: "wednesday", shortLabel: "Wed" },
-  { key: "thursday", shortLabel: "Thu" },
-  { key: "friday", shortLabel: "Fri" },
-  { key: "saturday", shortLabel: "Sat" },
-  { key: "sunday", shortLabel: "Sun" },
-];
+
+function formatWeekOffLabel(value) {
+  const text = String(value || "").trim();
+  if (!text) return "-";
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
 
 function formatCellValue(column, value) {
   if (value === null || value === undefined) return "";
@@ -240,17 +236,14 @@ function App() {
   const [reportAreaFilter, setReportAreaFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [shiftFilter, setShiftFilter] = useState("all");
-  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState([]);
   const [showImportModal, setShowImportModal] = useState(false);
   const [isImportingFiles, setIsImportingFiles] = useState(false);
   const [isRefreshingEmployees, setIsRefreshingEmployees] = useState(false);
-  const [isSavingEmployees, setIsSavingEmployees] = useState(false);
   const [importFiles, setImportFiles] = useState({
     shifts: null,
     timetables: null,
     schedules: null,
   });
-  const [lastSelectedIndex, setLastSelectedIndex] = useState(null);
   const employeeGridRef = useRef(null);
 
   useEffect(() => {
@@ -314,8 +307,6 @@ function App() {
           shift_details: [],
         }
       );
-      setSelectedEmployeeIds([]);
-      setLastSelectedIndex(null);
       setStatusType("success");
       setStatusText(`Loaded ${data.total || 0} employees.`);
     } catch (error) {
@@ -371,116 +362,6 @@ function App() {
       setStatusText(error.message || "Import failed.");
     } finally {
       setIsImportingFiles(false);
-    }
-  }
-
-  function handleEmployeeRowClick(event, row, index) {
-    const id = row.employee_id;
-    const idSet = new Set(selectedEmployeeIds);
-
-    if (event.shiftKey && lastSelectedIndex !== null) {
-      const start = Math.min(lastSelectedIndex, index);
-      const end = Math.max(lastSelectedIndex, index);
-      const rangeIds = filteredEmployeeRows.slice(start, end + 1).map((item) => item.employee_id);
-      if (event.metaKey || event.ctrlKey) {
-        rangeIds.forEach((rangeId) => idSet.add(rangeId));
-      } else {
-        setSelectedEmployeeIds(rangeIds);
-        return;
-      }
-    } else if (event.metaKey || event.ctrlKey) {
-      if (idSet.has(id)) idSet.delete(id);
-      else idSet.add(id);
-    } else {
-      setSelectedEmployeeIds([id]);
-      setLastSelectedIndex(index);
-      return;
-    }
-
-    setSelectedEmployeeIds([...idSet]);
-    setLastSelectedIndex(index);
-  }
-
-  function assignWeekOff(day, row) {
-    const selectedRows = filteredEmployeeRows.filter((item) =>
-      selectedEmployeeIds.includes(item.employee_id)
-    );
-    const canBulkAssign = selectedRows.length > 1 && selectedEmployeeIds.includes(row.employee_id);
-    const eligibleRows = canBulkAssign
-      ? selectedRows.filter((item) => item.has_day_selectors)
-      : row.has_day_selectors
-      ? [row]
-      : [];
-    const targetIds = eligibleRows.map((item) => item.employee_id);
-
-    if (targetIds.length === 0) {
-      setStatusType("error");
-      setStatusText("Security department rows do not support weekly off day selectors.");
-      return;
-    }
-
-    const shouldClearWeekOff = canBulkAssign
-      ? eligibleRows.every((item) => item.week_off === day)
-      : row.week_off === day;
-
-    setEmployeeRows((prev) =>
-      prev.map((item) => {
-        if (!targetIds.includes(item.employee_id)) return item;
-        const nextWeekDays = WEEK_DAY_OPTIONS.reduce((acc, option) => {
-          acc[option.key] = shouldClearWeekOff ? false : option.key === day;
-          return acc;
-        }, {});
-        return {
-          ...item,
-          week_off: shouldClearWeekOff ? "" : day,
-          week_days: nextWeekDays,
-        };
-      })
-    );
-    setStatusType("success");
-    setStatusText(
-      shouldClearWeekOff
-        ? canBulkAssign
-          ? `Cleared weekly off for ${targetIds.length} employees.`
-          : `Cleared weekly off for ${row.employee_name}.`
-        : canBulkAssign
-        ? `Assigned ${day} to ${targetIds.length} employees.`
-        : `Assigned ${day} to ${row.employee_name}.`
-    );
-  }
-
-  function handleEmployeeGridKeyDown(event) {
-    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "a") {
-      event.preventDefault();
-      setSelectedEmployeeIds(filteredEmployeeRows.map((row) => row.employee_id));
-      setStatusType("success");
-      setStatusText(`Selected ${filteredEmployeeRows.length} employees.`);
-    }
-  }
-
-  async function handleSaveEmployeeChanges() {
-    setIsSavingEmployees(true);
-    setStatusType("loading");
-    setStatusText("Saving employee management changes...");
-    try {
-      const rowsToSave = employeeRows
-        .filter((row) => row.has_day_selectors && row.week_off)
-        .map((row) => ({
-          employee_id: row.employee_id,
-          week_off: row.week_off,
-        }));
-      const data = await fetchJson("/employee-management/save", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rows: rowsToSave }),
-      });
-      setStatusType("success");
-      setStatusText(data.message || "Changes saved.");
-    } catch (error) {
-      setStatusType("error");
-      setStatusText(error.message || "Failed to save changes.");
-    } finally {
-      setIsSavingEmployees(false);
     }
   }
 
@@ -721,22 +602,17 @@ function App() {
                   <div className="space-y-1">
                     <h2 className="text-lg font-semibold text-foreground">Employee management</h2>
                     <p className="max-w-3xl text-xs text-secondary">
-                      Click a day cell to assign a weekly off. Security (no weekly off in rules) has no
-                      day selectors.
+                      View employee shift and weekly off data from BioTime and imported Excel masters.
                     </p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Button variant="outline" onClick={() => setShowImportModal(true)}>
-                      <Upload className="h-4 w-4" />
+                      <Download className="h-4 w-4" />
                       Import
                     </Button>
                     <Button variant="outline" onClick={fetchEmployeeManagementRows} disabled={isRefreshingEmployees}>
                       {isRefreshingEmployees ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                       Refresh
-                    </Button>
-                    <Button onClick={handleSaveEmployeeChanges} disabled={isSavingEmployees}>
-                      {isSavingEmployees ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                      Save Changes
                     </Button>
                   </div>
                 </div>
@@ -800,123 +676,49 @@ function App() {
 
                 <div
                   ref={employeeGridRef}
-                  tabIndex={0}
-                  onKeyDown={handleEmployeeGridKeyDown}
-                  className="overflow-hidden rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="overflow-hidden rounded-lg border border-border"
                 >
                   <table className="w-full table-fixed border-collapse">
                     <thead className="bg-muted/60 text-left text-[10px] uppercase tracking-wide text-muted-foreground">
                       <tr>
-                        <th className="w-[3%] px-1 py-2">
-                          <input
-                            type="checkbox"
-                            checked={
-                              filteredEmployeeRows.length > 0 &&
-                              filteredEmployeeRows.every((row) =>
-                                selectedEmployeeIds.includes(row.employee_id)
-                              )
-                            }
-                            onChange={(event) => {
-                              if (event.target.checked) {
-                                setSelectedEmployeeIds(
-                                  filteredEmployeeRows.map((row) => row.employee_id)
-                                );
-                              } else {
-                                setSelectedEmployeeIds([]);
-                              }
-                            }}
-                          />
-                        </th>
-                        <th className="w-[8%] px-2 py-2">Employee ID</th>
-                        <th className="w-[13%] px-2 py-2">Employee Name</th>
-                        <th className="w-[10%] px-2 py-2">Area</th>
-                        <th className="w-[10%] px-2 py-2">Department</th>
-                        <th className="w-[12%] px-2 py-2">Shift Details</th>
-                        <th className="w-[12%] px-2 py-2">Shift Time Table</th>
-                        <th className="w-[7%] px-2 py-2">Week Off</th>
-                        {WEEK_DAY_OPTIONS.map((day) => (
-                          <th key={day.key} className="w-[4%] px-1 py-2 text-center">
-                            {day.shortLabel}
-                          </th>
-                        ))}
+                        <th className="w-[9%] px-2 py-2">Employee ID</th>
+                        <th className="w-[15%] px-2 py-2">Employee Name</th>
+                        <th className="w-[12%] px-2 py-2">Area</th>
+                        <th className="w-[12%] px-2 py-2">Department</th>
+                        <th className="w-[14%] px-2 py-2">Shift Details</th>
+                        <th className="w-[14%] px-2 py-2">Shift Time Table</th>
+                        <th className="w-[10%] px-2 py-2">Week Off</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredEmployeeRows.map((row, index) => {
-                        const selected = selectedEmployeeIds.includes(row.employee_id);
-                        return (
-                          <tr
-                            key={row.employee_id}
-                            className={`border-b border-border/70 ${
-                              selected ? "bg-primary/10" : "hover:bg-muted/30"
-                            }`}
-                            onClick={(event) => handleEmployeeRowClick(event, row, index)}
-                          >
-                            <td className="px-1 py-2" onClick={(event) => event.stopPropagation()}>
-                              <input
-                                type="checkbox"
-                                checked={selected}
-                                onChange={() => {
-                                  setSelectedEmployeeIds((prev) =>
-                                    prev.includes(row.employee_id)
-                                      ? prev.filter((id) => id !== row.employee_id)
-                                      : [...prev, row.employee_id]
-                                  );
-                                }}
-                              />
-                            </td>
-                            <td className="truncate px-2 py-2 text-[11px]" title={row.employee_id}>
-                              {row.employee_id}
-                            </td>
-                            <td className="truncate px-2 py-2 text-[11px]" title={row.employee_name}>
-                              {row.employee_name}
-                            </td>
-                            <td className="truncate px-2 py-2 text-[11px]" title={row.area}>
-                              {row.area}
-                            </td>
-                            <td className="truncate px-2 py-2 text-[11px]" title={row.department}>
-                              {row.department}
-                            </td>
-                            <td className="truncate px-2 py-2 text-[11px]" title={row.shift_details || "-"}>
-                              {row.shift_details || "-"}
-                            </td>
-                            <td className="truncate px-2 py-2 text-[11px]" title={row.shift_timetable || "-"}>
-                              {row.shift_timetable || "-"}
-                            </td>
-                            <td className="px-2 py-2 text-[11px] font-medium capitalize">
-                              {row.week_off || "-"}
-                            </td>
-                            {WEEK_DAY_OPTIONS.map((day) => (
-                              <td key={`${row.employee_id}-${day.key}`} className="px-1 py-2 text-center">
-                                {row.has_day_selectors ? (
-                                  <button
-                                    type="button"
-                                    className={`h-6 w-6 rounded-full border text-[9px] font-semibold ${
-                                      row.week_off === day.key
-                                        ? "border-primary bg-primary text-white"
-                                        : "border-border bg-white text-secondary hover:border-primary/60"
-                                    }`}
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      assignWeekOff(day.key, row);
-                                    }}
-                                  >
-                                    {day.shortLabel[0]}
-                                  </button>
-                                ) : (
-                                  <span className="text-xs text-secondary">-</span>
-                                )}
-                              </td>
-                            ))}
-                          </tr>
-                        );
-                      })}
+                      {filteredEmployeeRows.map((row) => (
+                        <tr key={row.employee_id} className="border-b border-border/70 hover:bg-muted/30">
+                          <td className="truncate px-2 py-2 text-[11px]" title={row.employee_id}>
+                            {row.employee_id}
+                          </td>
+                          <td className="truncate px-2 py-2 text-[11px]" title={row.employee_name}>
+                            {row.employee_name}
+                          </td>
+                          <td className="truncate px-2 py-2 text-[11px]" title={row.area}>
+                            {row.area}
+                          </td>
+                          <td className="truncate px-2 py-2 text-[11px]" title={row.department}>
+                            {row.department}
+                          </td>
+                          <td className="truncate px-2 py-2 text-[11px]" title={row.shift_details || "-"}>
+                            {row.shift_details || "-"}
+                          </td>
+                          <td className="truncate px-2 py-2 text-[11px]" title={row.shift_timetable || "-"}>
+                            {row.shift_timetable || "-"}
+                          </td>
+                          <td className="px-2 py-2 text-[11px] font-medium">
+                            {formatWeekOffLabel(row.week_off)}
+                          </td>
+                        </tr>
+                      ))}
                       {filteredEmployeeRows.length === 0 && (
                         <tr>
-                          <td
-                            colSpan={8 + WEEK_DAY_OPTIONS.length}
-                            className="px-3 py-8 text-center text-sm text-secondary"
-                          >
+                          <td colSpan={7} className="px-3 py-8 text-center text-sm text-secondary">
                             No employee rows found for the current filters.
                           </td>
                         </tr>

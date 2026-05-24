@@ -1,7 +1,5 @@
-const fs = require("fs/promises");
 const { fetchEmployees } = require("../services/employeeService");
 const runtimeStore = require("../storage/runtimeStore");
-const { stores } = require("../storage");
 
 const WEEK_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
 
@@ -140,48 +138,8 @@ function buildWeekOffMapFromImport() {
   return result;
 }
 
-function buildSavedWeekOffMap(payload) {
-  const result = new Map();
-  const rows = Array.isArray(payload?.rows) ? payload.rows : [];
-  for (const row of rows) {
-    const employeeId = normalizeEmployeeId(row?.employee_id || "");
-    const weekOff = normalizeWeekOff(row?.week_off || "");
-    if (!employeeId || !weekOff) continue;
-    result.set(employeeId, weekOff);
-  }
-  return result;
-}
-
-function toWeekDayFlags(weekOff) {
-  const value = normalizeWeekOff(weekOff);
-  return WEEK_DAYS.reduce((acc, day) => {
-    acc[day] = day === value;
-    return acc;
-  }, {});
-}
-
-function isSecurityDepartment(departmentName) {
-  return toText(departmentName).toLowerCase().includes("security");
-}
-
 function getUniqueSorted(values) {
   return [...new Set(values.filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
-}
-
-async function lockFileAfterWrite(filePath) {
-  try {
-    await fs.chmod(filePath, 0o400);
-  } catch (error) {
-    // Best effort. Some file systems may not support chmod.
-  }
-}
-
-async function unlockFileBeforeWrite(filePath) {
-  try {
-    await fs.chmod(filePath, 0o600);
-  } catch (error) {
-    // Best effort.
-  }
 }
 
 async function getEmployeeManagementData(req, res, next) {
@@ -190,8 +148,6 @@ async function getEmployeeManagementData(req, res, next) {
     const shiftDetailsByEmployee = buildShiftDetailsMap();
     const timetableByShiftDetails = buildTimetableMapByShiftDetails();
     const importedWeekOffByEmployee = buildWeekOffMapFromImport();
-    const savedPayload = await stores.employeeManagement.read();
-    const savedWeekOffByEmployee = buildSavedWeekOffMap(savedPayload);
 
     const rows = employees
       .map((employee) => {
@@ -201,22 +157,16 @@ async function getEmployeeManagementData(req, res, next) {
         const normalizedEmployeeId = normalizeEmployeeId(employeeId);
         const shiftDetails = shiftDetailsByEmployee.get(normalizedEmployeeId) || "";
         const shiftTimetable = timetableByShiftDetails.get(shiftDetails) || "";
-        const weekOff =
-          savedWeekOffByEmployee.get(normalizedEmployeeId) ||
-          importedWeekOffByEmployee.get(normalizedEmployeeId) ||
-          "";
-        const department = getDepartmentName(employee) || "UNASSIGNED";
+        const weekOff = importedWeekOffByEmployee.get(normalizedEmployeeId) || "";
 
         return {
           employee_id: employeeId,
           employee_name: getEmployeeName(employee) || `EMP-${employeeId}`,
           area: getAreaName(employee) || "UNASSIGNED",
-          department,
+          department: getDepartmentName(employee) || "UNASSIGNED",
           shift_details: shiftDetails,
           shift_timetable: shiftTimetable,
           week_off: weekOff,
-          has_day_selectors: !isSecurityDepartment(department),
-          week_days: toWeekDayFlags(weekOff),
         };
       })
       .filter(Boolean)
@@ -236,39 +186,6 @@ async function getEmployeeManagementData(req, res, next) {
   }
 }
 
-async function saveEmployeeManagementData(req, res, next) {
-  try {
-    const rows = Array.isArray(req.body?.rows) ? req.body.rows : [];
-    const normalizedRows = rows
-      .map((row) => {
-        const employeeId = normalizeEmployeeId(row?.employee_id || "");
-        const weekOff = normalizeWeekOff(row?.week_off || "");
-        if (!employeeId || !weekOff) return null;
-        return { employee_id: employeeId, week_off: weekOff };
-      })
-      .filter(Boolean);
-
-    const payload = {
-      rows: normalizedRows,
-      updatedAt: new Date().toISOString(),
-    };
-
-    await unlockFileBeforeWrite(stores.employeeManagement.filePath);
-    await stores.employeeManagement.write(payload);
-    await lockFileAfterWrite(stores.employeeManagement.filePath);
-
-    return res.json({
-      message: "Employee management changes saved locally.",
-      totalRows: normalizedRows.length,
-      filePath: stores.employeeManagement.filePath,
-      readOnly: true,
-    });
-  } catch (error) {
-    return next(error);
-  }
-}
-
 module.exports = {
   getEmployeeManagementData,
-  saveEmployeeManagementData,
 };

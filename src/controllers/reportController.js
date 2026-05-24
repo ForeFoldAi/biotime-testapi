@@ -26,13 +26,7 @@ async function generateReport(req, res, next) {
     const { month, year } = parseMonthYear(req.query);
     const selectedArea = String(req.query.area || "").trim();
     const shifts = runtimeStore.getShifts();
-    const weekoffs = runtimeStore.getWeekoffs();
-    const employeeManagementPayload = await stores.employeeManagement.read();
-    const savedWeekoffs = Array.isArray(employeeManagementPayload?.rows)
-      ? employeeManagementPayload.rows
-      : [];
-    // Saved Employee Management week-offs should override imported defaults.
-    const mergedWeekoffRows = [...weekoffs, ...savedWeekoffs];
+    const weekoffRows = runtimeStore.getWeekoffs();
     const schedules = runtimeStore.getSchedules();
 
     const start = startOfMonth(year, month);
@@ -56,7 +50,7 @@ async function generateReport(req, res, next) {
       month,
       year,
       shiftMaster: shifts,
-      weekoffRows: mergedWeekoffRows,
+      weekoffRows,
       scheduleRows: schedules,
     });
 
