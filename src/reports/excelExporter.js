@@ -230,12 +230,24 @@ function getStatusBackgroundColor(statusCode, hasOt = false, isOTRow = false, di
   return null;
 }
 
-function setColumnWidths(ws, numDays) {
+// AFTER
+function setColumnWidths(ws, numDays, rows, days) {
+  const dayWidths = Array.from({ length: numDays }, (_, dayIdx) => {
+    const day = days[dayIdx];
+    let maxLen = 3.8;
+    for (const row of rows) {
+      const display = String(row.dailyDisplay?.[day] || row.daily?.[day] || "");
+      const ot = Number(row.dailyOt?.[day] || 0);
+      const cellLen = Math.max(display.length, ot > 0 ? String(Math.round(ot)).length : 0);
+      if (cellLen > maxLen) maxLen = cellLen;
+    }
+    return { wch: Math.min(maxLen + 0.5, 12) };
+  });
+
   ws["!cols"] = [
     ...FIXED_COLUMNS.map((col) => ({ wch: col.width })),
-    ...Array.from({ length: numDays }, () => ({ wch: 3.8 })),
-    ...SUMMARY_COLUMNS.map((col) => ({ wch: col.width }),
-    ),
+    ...dayWidths,
+    ...SUMMARY_COLUMNS.map((col) => ({ wch: col.width })),
   ];
 }
 
@@ -301,15 +313,18 @@ function summarizeRow(row, days, year, month) {
     const dateKey = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const dayOt = Number(row.dailyOt?.[day] || row.otHours?.[dateKey] || 0);
     const isStrictP = isExcelStrictPresent(code, display);
-    const isManDay = isExcelManDay(code);
+    //const isManDay = isExcelManDay(code);
     const isWeekoff = code === STATUS.WEEK_OFF || code === "WO";
     const isPh = code === STATUS.PUB_HOL;
     if (isStrictP) out.present += 1;
     if (isWeekoff) out.wo += 1;
     if (isPh) out.ph += 1;
     if (dayOt > 0) out.ot += 1;
-    if (isStrictP) out.totalPresent += 1;
-    if (isManDay) out.totalManDays += 1;
+    //if (isStrictP) out.totalPresent += 1;
+    //if (isManDay) out.totalManDays += 1;
+    if (isStrictP || isWeekoff) out.totalPresent += 1;
+    if (isStrictP || isWeekoff) out.totalManDays += 1;
+    if (dayOt > 0) out.totalManDays += 1;
   }
   return out;
 }
@@ -322,7 +337,7 @@ function buildDepartmentSheet(processedReport, department, rows) {
   const merges = [];
   const rowsMeta = initRowsMeta();
 
-  setColumnWidths(ws, numDays);
+  setColumnWidths(ws, numDays, rows, days);
   buildHeaders(ws, merges, {
     month: Number(processedReport.month),
     year: Number(processedReport.year),
@@ -408,15 +423,18 @@ function buildDepartmentSheet(processedReport, department, rows) {
 
       const normalized = code.toUpperCase();
       const isStrictP = isExcelStrictPresent(code, displayCode);
-      const isManDay = isExcelManDay(code);
+      //const isManDay = isExcelManDay(code);
       const isWeekoff = normalized === STATUS.WEEK_OFF || normalized === "WO";
       const isPh = normalized === STATUS.PUB_HOL;
       if (isStrictP) perDayTotals[dayIdx].present += 1;
       if (isWeekoff) perDayTotals[dayIdx].wo += 1;
       if (isPh) perDayTotals[dayIdx].ph += 1;
       if (dayOt > 0) perDayTotals[dayIdx].ot += 1;
-      if (isStrictP) perDayTotals[dayIdx].totalPresent += 1;
-      if (isManDay) perDayTotals[dayIdx].totalManDays += 1;
+      //if (isStrictP) perDayTotals[dayIdx].totalPresent += 1;
+      if (isStrictP || isWeekoff) perDayTotals[dayIdx].totalPresent += 1;
+      //if (isManDay) perDayTotals[dayIdx].totalManDays += 1;
+      if (isStrictP || isWeekoff) perDayTotals[dayIdx].totalManDays += 1;
+      if (dayOt > 0) perDayTotals[dayIdx].totalManDays += 1;
     });
 
     // summary columns
