@@ -1,7 +1,7 @@
 {
   "month": 6,
   "year": 2026,
-  "generatedAt": "2026-06-06T15:46:55.724Z",
+  "generatedAt": "2026-06-08T04:26:11.492Z",
   "columns": [
     "employee_id",
     "employee_name",
@@ -199,11 +199,11 @@
       "ot_hours": "0 hr 0 mins"
     },
     {
-      "1": "A4",
-      "2": "C4",
+      "1": "L",
+      "2": "A4",
       "3": "L",
-      "4": "A4",
-      "5": "C4",
+      "4": "L",
+      "5": "A4",
       "6": "L",
       "7": "L",
       "8": "L",
@@ -234,8 +234,8 @@
       "department": "SECURITY",
       "designation": "Security Offier",
       "week_off": "",
-      "present_days": 0,
-      "ot_hours": "0 hr 0 mins"
+      "present_days": 2,
+      "ot_hours": "8 hr 0 mins"
     },
     {
       "1": "L",
@@ -277,14 +277,14 @@
       "ot_hours": "0 hr 0 mins"
     },
     {
-      "1": "C4",
-      "2": "C4",
-      "3": "A4C4",
-      "4": "C4",
+      "1": "A4",
+      "2": "A4",
+      "3": "A4",
+      "4": "A4",
       "5": "A4",
       "6": "C4",
       "7": "L",
-      "8": "L",
+      "8": "A4",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -312,8 +312,8 @@
       "department": "SECURITY",
       "designation": "ASM",
       "week_off": "",
-      "present_days": 2,
-      "ot_hours": "12 hr 0 mins"
+      "present_days": 5,
+      "ot_hours": "20 hr 0 mins"
     },
     {
       "1": "A4",
@@ -321,9 +321,9 @@
       "3": "A4",
       "4": "A4",
       "5": "A4",
-      "6": "L",
+      "6": "A4",
       "7": "L",
-      "8": "L",
+      "8": "A4",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -356,11 +356,11 @@
     },
     {
       "1": "L",
-      "2": "A4",
-      "3": "C4",
-      "4": "C4",
-      "5": "C4",
-      "6": "C4",
+      "2": "L",
+      "3": "A4",
+      "4": "A4",
+      "5": "A4",
+      "6": "A4",
       "7": "L",
       "8": "L",
       "9": "L",
@@ -390,8 +390,8 @@
       "department": "SECURITY",
       "designation": "Head Guard",
       "week_off": "",
-      "present_days": 0,
-      "ot_hours": "0 hr 0 mins"
+      "present_days": 4,
+      "ot_hours": "16 hr 0 mins"
     },
     {
       "1": "A",
@@ -433,14 +433,14 @@
       "ot_hours": "0 hr 0 mins"
     },
     {
-      "1": "C4",
-      "2": "C4",
-      "3": "C4",
-      "4": "C4",
-      "5": "C4",
-      "6": "C4",
-      "7": "L",
-      "8": "L",
+      "1": "A4",
+      "2": "A4",
+      "3": "A4",
+      "4": "A4",
+      "5": "A4",
+      "6": "A4",
+      "7": "A4",
+      "8": "A4",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -468,8 +468,8 @@
       "department": "SECURITY",
       "designation": "Security Guard",
       "week_off": "",
-      "present_days": 1,
-      "ot_hours": "0 hr 0 mins"
+      "present_days": 7,
+      "ot_hours": "28 hr 0 mins"
     },
     {
       "1": "L",
@@ -554,10 +554,10 @@
       "2": "G",
       "3": "A4",
       "4": "A4",
-      "5": "A4C4",
-      "6": "C4",
-      "7": "L",
-      "8": "L",
+      "5": "A4",
+      "6": "A4",
+      "7": "A4",
+      "8": "A4",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -585,17 +585,17 @@
       "department": "SECURITY",
       "designation": "Security Guard",
       "week_off": "",
-      "present_days": 2,
+      "present_days": 4,
       "ot_hours": "12 hr 0 mins"
     },
     {
-      "1": "C4",
-      "2": "C4",
-      "3": "C4",
+      "1": "A4",
+      "2": "A4",
+      "3": "A4",
       "4": "A4",
       "5": "G",
       "6": "A4",
-      "7": "L",
+      "7": "G",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -624,11 +624,11 @@
       "department": "SECURITY",
       "designation": "Security Guard",
       "week_off": "",
-      "present_days": 5,
-      "ot_hours": "0 hr 0 mins"
+      "present_days": 7,
+      "ot_hours": "12 hr 0 mins"
     },
     {
-      "1": "C4",
+      "1": "A4",
       "2": "C4",
       "3": "L",
       "4": "L",
@@ -668,10 +668,10 @@
     },
     {
       "1": "L",
-      "2": "A4",
+      "2": "L",
       "3": "A4",
-      "4": "C4",
-      "5": "L",
+      "4": "A4",
+      "5": "A4",
       "6": "L",
       "7": "L",
       "8": "L",
@@ -702,8 +702,8 @@
       "department": "SECURITY",
       "designation": "Head Guard",
       "week_off": "",
-      "present_days": 0,
-      "ot_hours": "0 hr 0 mins"
+      "present_days": 1,
+      "ot_hours": "4 hr 0 mins"
     },
     {
       "1": "L",
@@ -784,14 +784,14 @@
       "ot_hours": "0 hr 0 mins"
     },
     {
-      "1": "C4",
-      "2": "C4",
-      "3": "C4",
-      "4": "C4",
-      "5": "C4",
+      "1": "A4",
+      "2": "A4",
+      "3": "A4",
+      "4": "A4",
+      "5": "A4",
       "6": "L",
-      "7": "L",
-      "8": "L",
+      "7": "A4",
+      "8": "A4",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -819,8 +819,8 @@
       "department": "SECURITY",
       "designation": "Lady Guard",
       "week_off": "",
-      "present_days": 2,
-      "ot_hours": "0 hr 0 mins"
+      "present_days": 6,
+      "ot_hours": "24 hr 0 mins"
     },
     {
       "1": "L",
@@ -907,8 +907,8 @@
       "4": "A4",
       "5": "G",
       "6": "A4",
-      "7": "L",
-      "8": "L",
+      "7": "A4",
+      "8": "A4",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -946,8 +946,8 @@
       "4": "A4",
       "5": "G",
       "6": "A4",
-      "7": "L",
-      "8": "L",
+      "7": "G",
+      "8": "A4",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -1024,7 +1024,7 @@
       "4": "A4",
       "5": "G",
       "6": "A4",
-      "7": "L",
+      "7": "C4",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -1096,12 +1096,12 @@
       "ot_hours": "0 hr 0 mins"
     },
     {
-      "1": "C4",
-      "2": "C4",
-      "3": "A4C4",
-      "4": "C4",
+      "1": "A4",
+      "2": "A4",
+      "3": "A4",
+      "4": "A4",
       "5": "A4",
-      "6": "C4",
+      "6": "A4",
       "7": "L",
       "8": "L",
       "9": "L",
@@ -1131,17 +1131,17 @@
       "department": "SECURITY",
       "designation": "Lady Guard",
       "week_off": "",
-      "present_days": 3,
-      "ot_hours": "12 hr 0 mins"
+      "present_days": 5,
+      "ot_hours": "20 hr 0 mins"
     },
     {
-      "1": "L",
+      "1": "A4",
       "2": "C4",
       "3": "A4",
       "4": "A4",
       "5": "G",
       "6": "A4",
-      "7": "L",
+      "7": "G",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -1331,11 +1331,11 @@
     },
     {
       "1": "L",
-      "2": "A4C4",
-      "3": "C4",
-      "4": "C4",
-      "5": "C4",
-      "6": "C4",
+      "2": "A4",
+      "3": "A4",
+      "4": "A4",
+      "5": "A4",
+      "6": "A4",
       "7": "L",
       "8": "L",
       "9": "L",
@@ -1365,18 +1365,18 @@
       "department": "SECURITY",
       "designation": "Lady Guard",
       "week_off": "",
-      "present_days": 3,
-      "ot_hours": "12 hr 0 mins"
+      "present_days": 5,
+      "ot_hours": "20 hr 0 mins"
     },
     {
       "1": "C4",
-      "2": "C4",
-      "3": "A4",
-      "4": "L",
+      "2": "A4",
+      "3": "L",
+      "4": "A4",
       "5": "C4",
       "6": "A4",
-      "7": "L",
-      "8": "L",
+      "7": "C4",
+      "8": "A4",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -1404,18 +1404,18 @@
       "department": "SECURITY",
       "designation": "Security Guard",
       "week_off": "",
-      "present_days": 1,
-      "ot_hours": "4 hr 0 mins"
+      "present_days": 2,
+      "ot_hours": "8 hr 0 mins"
     },
     {
       "1": "A4",
-      "2": "L",
-      "3": "A4",
-      "4": "L",
+      "2": "A4",
+      "3": "L",
+      "4": "A4",
       "5": "L",
       "6": "L",
       "7": "L",
-      "8": "L",
+      "8": "A4",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -1492,7 +1492,7 @@
       "4": "L",
       "5": "L",
       "6": "L",
-      "7": "L",
+      "7": "C4",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -1525,13 +1525,13 @@
       "ot_hours": "0 hr 0 mins"
     },
     {
-      "1": "L",
+      "1": "A4",
       "2": "L",
       "3": "L",
       "4": "C4",
       "5": "A4",
       "6": "A4",
-      "7": "L",
+      "7": "G",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -1644,12 +1644,12 @@
     {
       "1": "L",
       "2": "C",
-      "3": "G",
+      "3": "CA",
       "4": "A",
       "5": "A",
       "6": "A",
-      "7": "L",
-      "8": "L",
+      "7": "A",
+      "8": "A",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -1677,7 +1677,7 @@
       "department": "MEP",
       "designation": "Driver",
       "week_off": "",
-      "present_days": 1,
+      "present_days": 0,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -1687,8 +1687,8 @@
       "4": "G",
       "5": "G",
       "6": "G",
-      "7": "L",
-      "8": "L",
+      "7": "A",
+      "8": "A",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -1804,7 +1804,7 @@
       "4": "G8",
       "5": "G8",
       "6": "L",
-      "7": "L",
+      "7": "G8",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -1833,7 +1833,7 @@
       "department": "HOUSEKEEPING",
       "designation": "Lady Supervisor",
       "week_off": "",
-      "present_days": 1,
+      "present_days": 2,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -1960,7 +1960,7 @@
       "4": "L",
       "5": "L",
       "6": "B",
-      "7": "L",
+      "7": "A",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -1989,7 +1989,7 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
+      "present_days": 1,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -2230,10 +2230,10 @@
       "1": "L",
       "2": "L",
       "3": "L",
-      "4": "BC",
-      "5": "BC",
-      "6": "L",
-      "7": "L",
+      "4": "L",
+      "5": "A",
+      "6": "A",
+      "7": "A",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -2262,8 +2262,8 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
-      "ot_hours": "18 hr 0 mins"
+      "present_days": 3,
+      "ot_hours": "0 hr 0 mins"
     },
     {
       "1": "L",
@@ -2350,7 +2350,7 @@
       "4": "L",
       "5": "L",
       "6": "L",
-      "7": "L",
+      "7": "A",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -2379,7 +2379,7 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
+      "present_days": 1,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -2387,9 +2387,9 @@
       "2": "L",
       "3": "L",
       "4": "L",
-      "5": "L",
+      "5": "A",
       "6": "L",
-      "7": "L",
+      "7": "A",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -2418,7 +2418,7 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
+      "present_days": 2,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -2428,7 +2428,7 @@
       "4": "L",
       "5": "L",
       "6": "B",
-      "7": "L",
+      "7": "A",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -2457,7 +2457,7 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
+      "present_days": 1,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -2506,7 +2506,7 @@
       "4": "L",
       "5": "L",
       "6": "L",
-      "7": "L",
+      "7": "A",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -2535,7 +2535,7 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
+      "present_days": 1,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -2695,13 +2695,13 @@
       "ot_hours": "0 hr 0 mins"
     },
     {
-      "1": "BC",
-      "2": "BC",
-      "3": "BC",
-      "4": "BC",
-      "5": "BC",
-      "6": "L",
-      "7": "L",
+      "1": "A",
+      "2": "A",
+      "3": "A",
+      "4": "A",
+      "5": "A",
+      "6": "A",
+      "7": "A",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -2730,8 +2730,8 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
-      "ot_hours": "45 hr 0 mins"
+      "present_days": 7,
+      "ot_hours": "0 hr 0 mins"
     },
     {
       "1": "L",
@@ -2818,7 +2818,7 @@
       "4": "L",
       "5": "L",
       "6": "L",
-      "7": "L",
+      "7": "A",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -2847,7 +2847,7 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
+      "present_days": 1,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -2890,12 +2890,12 @@
       "ot_hours": "0 hr 0 mins"
     },
     {
-      "1": "L",
+      "1": "AB",
       "2": "L",
-      "3": "C",
+      "3": "L",
       "4": "L",
-      "5": "C",
-      "6": "L",
+      "5": "L",
+      "6": "AB",
       "7": "L",
       "8": "L",
       "9": "L",
@@ -2925,8 +2925,8 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
-      "ot_hours": "0 hr 0 mins"
+      "present_days": 2,
+      "ot_hours": "12 hr 0 mins"
     },
     {
       "1": "L",
@@ -2974,7 +2974,7 @@
       "4": "L",
       "5": "L",
       "6": "L",
-      "7": "L",
+      "7": "B",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -3003,7 +3003,7 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
+      "present_days": 1,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -3013,7 +3013,7 @@
       "4": "L",
       "5": "L",
       "6": "L",
-      "7": "L",
+      "7": "AB",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -3042,8 +3042,8 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
-      "ot_hours": "0 hr 0 mins"
+      "present_days": 1,
+      "ot_hours": "6 hr 0 mins"
     },
     {
       "1": "L",
@@ -3130,7 +3130,7 @@
       "4": "L",
       "5": "L",
       "6": "L",
-      "7": "L",
+      "7": "B",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -3159,7 +3159,7 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
+      "present_days": 1,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -3168,8 +3168,8 @@
       "3": "L",
       "4": "L",
       "5": "L",
-      "6": "B",
-      "7": "L",
+      "6": "AB",
+      "7": "AB",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -3198,12 +3198,12 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
-      "ot_hours": "0 hr 0 mins"
+      "present_days": 2,
+      "ot_hours": "12 hr 0 mins"
     },
     {
-      "1": "C",
-      "2": "L",
+      "1": "L",
+      "2": "AB",
       "3": "L",
       "4": "L",
       "5": "L",
@@ -3237,8 +3237,8 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
-      "ot_hours": "0 hr 0 mins"
+      "present_days": 1,
+      "ot_hours": "6 hr 0 mins"
     },
     {
       "1": "L",
@@ -3364,7 +3364,7 @@
       "4": "L",
       "5": "L",
       "6": "B",
-      "7": "L",
+      "7": "B",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -3438,11 +3438,11 @@
     {
       "1": "L",
       "2": "L",
-      "3": "C",
-      "4": "BC",
-      "5": "BC",
-      "6": "B",
-      "7": "L",
+      "3": "L",
+      "4": "A",
+      "5": "AB",
+      "6": "AB",
+      "7": "A",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -3471,8 +3471,8 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
-      "ot_hours": "18 hr 0 mins"
+      "present_days": 4,
+      "ot_hours": "12 hr 0 mins"
     },
     {
       "1": "L",
@@ -3631,13 +3631,13 @@
       "ot_hours": "0 hr 0 mins"
     },
     {
-      "1": "BC",
-      "2": "BC",
-      "3": "BC",
-      "4": "BC",
-      "5": "BC",
-      "6": "B",
-      "7": "L",
+      "1": "A",
+      "2": "AB",
+      "3": "A",
+      "4": "AB",
+      "5": "AB",
+      "6": "A",
+      "7": "A",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -3666,8 +3666,8 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
-      "ot_hours": "45 hr 0 mins"
+      "present_days": 7,
+      "ot_hours": "18 hr 0 mins"
     },
     {
       "1": "L",
@@ -3676,7 +3676,7 @@
       "4": "L",
       "5": "L",
       "6": "B",
-      "7": "L",
+      "7": "AB",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -3705,8 +3705,8 @@
       "department": "HOUSEKEEPING",
       "designation": "Janitor",
       "week_off": "",
-      "present_days": 0,
-      "ot_hours": "0 hr 0 mins"
+      "present_days": 1,
+      "ot_hours": "6 hr 0 mins"
     },
     {
       "1": "L",
@@ -3793,7 +3793,7 @@
       "4": "L",
       "5": "L",
       "6": "L",
-      "7": "L",
+      "7": "B",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -3822,7 +3822,7 @@
       "department": "HOUSEKEEPING",
       "designation": "Supervisor",
       "week_off": "",
-      "present_days": 0,
+      "present_days": 1,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -4099,13 +4099,13 @@
       "ot_hours": "0 hr 0 mins"
     },
     {
-      "1": "B",
-      "2": "BC",
-      "3": "B",
-      "4": "BC",
+      "1": "A",
+      "2": "B",
+      "3": "A",
+      "4": "B",
       "5": "A",
       "6": "B",
-      "7": "L",
+      "7": "A",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -4134,8 +4134,8 @@
       "department": "MEP",
       "designation": "DG Operator",
       "week_off": "",
-      "present_days": 4,
-      "ot_hours": "10 hr 0 mins"
+      "present_days": 7,
+      "ot_hours": "0 hr 0 mins"
     },
     {
       "1": "L",
@@ -4183,7 +4183,7 @@
       "4": "A",
       "5": "B",
       "6": "A",
-      "7": "L",
+      "7": "B",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -4212,7 +4212,7 @@
       "department": "MEP",
       "designation": "DG Operator",
       "week_off": "",
-      "present_days": 4,
+      "present_days": 5,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -4222,7 +4222,7 @@
       "4": "L",
       "5": "L",
       "6": "B",
-      "7": "L",
+      "7": "B",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -4251,17 +4251,17 @@
       "department": "MEP",
       "designation": "HVAC Supervisor",
       "week_off": "",
-      "present_days": 0,
+      "present_days": 1,
       "ot_hours": "0 hr 0 mins"
     },
     {
       "1": "C",
-      "2": "C",
+      "2": "A",
       "3": "A",
       "4": "A",
       "5": "B",
       "6": "A",
-      "7": "L",
+      "7": "A",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -4290,7 +4290,7 @@
       "department": "MEP",
       "designation": "Plumber",
       "week_off": "",
-      "present_days": 4,
+      "present_days": 5,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -4300,8 +4300,8 @@
       "4": "A",
       "5": "C",
       "6": "A",
-      "7": "L",
-      "8": "L",
+      "7": "C",
+      "8": "A",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -4372,14 +4372,14 @@
       "ot_hours": "0 hr 0 mins"
     },
     {
-      "1": "ABC",
-      "2": "B",
-      "3": "ABC",
-      "4": "B",
-      "5": "A",
-      "6": "B",
-      "7": "L",
-      "8": "L",
+      "1": "AB",
+      "2": "A",
+      "3": "AB",
+      "4": "A",
+      "5": "L",
+      "6": "AB",
+      "7": "C",
+      "8": "A",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -4407,8 +4407,8 @@
       "department": "MEP",
       "designation": "Plumber",
       "week_off": "",
-      "present_days": 2,
-      "ot_hours": "34 hr 0 mins"
+      "present_days": 5,
+      "ot_hours": "0 hr 0 mins"
     },
     {
       "1": "B",
@@ -4417,7 +4417,7 @@
       "4": "B",
       "5": "L",
       "6": "B",
-      "7": "L",
+      "7": "C",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -4885,7 +4885,7 @@
       "4": "G",
       "5": "G",
       "6": "L",
-      "7": "L",
+      "7": "G",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -4914,7 +4914,7 @@
       "department": "MEP",
       "designation": "Asst  Electrician",
       "week_off": "",
-      "present_days": 5,
+      "present_days": 6,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -4924,8 +4924,8 @@
       "4": "B",
       "5": "L",
       "6": "B",
-      "7": "L",
-      "8": "L",
+      "7": "A",
+      "8": "A",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -4953,7 +4953,7 @@
       "department": "MEP",
       "designation": "Electrician",
       "week_off": "",
-      "present_days": 0,
+      "present_days": 1,
       "ot_hours": "0 hr 0 mins"
     },
     {
@@ -5074,13 +5074,13 @@
       "ot_hours": "0 hr 0 mins"
     },
     {
-      "1": "ABC",
-      "2": "B",
-      "3": "B",
+      "1": "A",
+      "2": "A",
+      "3": "AB",
       "4": "A",
       "5": "A",
       "6": "B",
-      "7": "L",
+      "7": "C",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -5110,7 +5110,7 @@
       "designation": "Asst Plumber",
       "week_off": "",
       "present_days": 5,
-      "ot_hours": "17 hr 0 mins"
+      "ot_hours": "0 hr 0 mins"
     },
     {
       "1": "B",
@@ -5119,8 +5119,8 @@
       "4": "L",
       "5": "L",
       "6": "B",
-      "7": "L",
-      "8": "L",
+      "7": "C",
+      "8": "A",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -5191,13 +5191,13 @@
       "ot_hours": "0 hr 0 mins"
     },
     {
-      "1": "B",
+      "1": "A",
       "2": "B",
       "3": "C",
       "4": "A",
-      "5": "BC",
+      "5": "B",
       "6": "A",
-      "7": "L",
+      "7": "C",
       "8": "L",
       "9": "L",
       "10": "L",
@@ -5226,8 +5226,8 @@
       "department": "MEP",
       "designation": "Asst  Electrician",
       "week_off": "",
-      "present_days": 4,
-      "ot_hours": "10 hr 0 mins"
+      "present_days": 5,
+      "ot_hours": "0 hr 0 mins"
     },
     {
       "1": "L",
@@ -5503,14 +5503,14 @@
       "ot_hours": "0 hr 0 mins"
     },
     {
-      "1": "B",
+      "1": "A",
       "2": "G",
-      "3": "B",
-      "4": "BC",
+      "3": "A",
+      "4": "B",
       "5": "A",
       "6": "B",
-      "7": "L",
-      "8": "L",
+      "7": "B",
+      "8": "A",
       "9": "L",
       "10": "L",
       "11": "L",
@@ -5538,8 +5538,8 @@
       "department": "MEP",
       "designation": "Asst STP",
       "week_off": "",
-      "present_days": 3,
-      "ot_hours": "23 hr 1 mins"
+      "present_days": 6,
+      "ot_hours": "2 hr 58 mins"
     },
     {
       "1": "L",
@@ -5622,7 +5622,7 @@
   ],
   "excel": {
     "filename": "attendance-report-2026-06.xlsx",
-    "outputPath": "C:\\Users\\HP\\Desktop\\Report Generator\\biotime-testapi\\outputs\\attendance-report-2026-06.xlsx"
+    "outputPath": "/Applications/ForeFold/bio time/biotime-testapi/outputs/attendance-report-2026-06.xlsx"
   },
   "area": "all"
 }

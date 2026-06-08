@@ -5,8 +5,12 @@ const { stores } = require("../storage");
 const runtimeStore = require("../storage/runtimeStore");
 const { buildTabularReport } = require("../reports/reportBuilder");
 const { exportReportToExcel } = require("../reports/excelExporter");
-const { startOfMonth, endOfMonth, formatDate, hoursBetween } = require("../utils/dateUtils");
+const { startOfMonth, endOfMonth, formatDate } = require("../utils/dateUtils");
 const { formatHoursToHM } = require("../utils/formatHours");
+const {
+  deriveCheckInOut,
+  groupPunchesByEmployeeDate,
+} = require("../utils/punchGrouping");
 const fs = require("fs/promises");
 const path = require("path");
 const { OUTPUT_DIR } = require("../config/env");
@@ -160,44 +164,32 @@ async function getEmployeeCheckinCheckout(req, res, next) {
       });
     }
 
-    const grouped = new Map();
-    for (const transaction of transactions || []) {
+    const punchGroups = groupPunchesByEmployeeDate(transactions, (transaction) => {
       const employeeId = getEmployeeId(transaction);
-      const punchDateValue = getPunchDate(transaction);
-      if (!employeeId || !punchDateValue || !employeeIndex.has(employeeId)) continue;
+      if (!employeeId || !employeeIndex.has(employeeId)) return null;
+      return employeeId;
+    });
 
-      const punchDate = new Date(punchDateValue);
-      if (Number.isNaN(punchDate.getTime())) continue;
+    const monthStart = formatDate(start);
+    const monthEnd = formatDate(end);
 
-      const date = formatDate(punchDate);
-      const key = `${employeeId}|${date}`;
-      if (!grouped.has(key)) {
-        grouped.set(key, {
-          employee_id: employeeId,
-          date,
-          punches: [],
-        });
-      }
-      grouped.get(key).punches.push({
-        date: punchDate,
-        raw: String(punchDateValue),
-      });
-    }
+    punchGroups.forEach((group) => {
+      if (group.punch_date < monthStart || group.punch_date > monthEnd) return;
 
-    grouped.forEach((item) => {
-      const punches = item.punches.sort((a, b) => a.date - b.date);
-      const checkIn = punches[0].date;
-      const checkOut = punches[punches.length - 1].date;
-      const wh = Number(hoursBetween(checkIn, checkOut).toFixed(2));
+      const derived = deriveCheckInOut(group);
+      if (!derived || !employeeIndex.has(group.employeeKey)) return;
+
+      const wh = Number(derived.working_hours.toFixed(2));
       const entry = {
-        date: item.date,
-        check_in: punches[0].raw,
-        check_out: punches[punches.length - 1].raw,
+        date: group.punch_date,
+        check_in: derived.check_in_raw,
+        check_out: derived.check_out_raw,
         working_hours: formatHoursToHM(wh),
         working_hours_decimal: wh,
-        punch_count: punches.length,
+        punch_count: derived.punch_count,
+        attendance_status: derived.punchAttendanceStatus,
       };
-      employeeIndex.get(item.employee_id).attendance.push(entry);
+      employeeIndex.get(group.employeeKey).attendance.push(entry);
     });
 
     employeeIndex.forEach((row) => {

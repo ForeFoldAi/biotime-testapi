@@ -17,7 +17,7 @@ const fs = require("fs");
 const APP_DISPLAY_NAME = "ForeFold Report Generator";
 
 let httpServer = null;
-let serverPort = Number(process.env.PORT || 4000);
+let serverPort = Number(process.env.PORT || 5000);
 
 async function createWindow(port) {
   const iconPath = path.resolve(__dirname, "../assets/icon.png");

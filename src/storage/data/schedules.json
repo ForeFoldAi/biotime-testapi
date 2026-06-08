@@ -72,6 +72,14 @@
     "end_date": "2026-12-31"
   },
   {
+    "employee_id": "AUIL018",
+    "first_name": "Chilumula Pochaiah",
+    "last_name": "",
+    "shift_name": "General Shift",
+    "start_date": "2026-04-01",
+    "end_date": "2026-12-31"
+  },
+  {
     "employee_id": "DCT208",
     "first_name": "T.NAGARAJU",
     "last_name": "",
@@ -172,6 +180,14 @@
     "first_name": "P NITHIN",
     "last_name": "",
     "shift_name": "MEP-General",
+    "start_date": "2026-04-01",
+    "end_date": "2026-04-30"
+  },
+  {
+    "employee_id": "DCT113",
+    "first_name": "K.THIRUPATHI REDDY",
+    "last_name": "",
+    "shift_name": "MEP B Shift",
     "start_date": "2026-04-01",
     "end_date": "2026-04-30"
   },
@@ -1092,14 +1108,6 @@
     "first_name": "Pearl Employee",
     "last_name": "",
     "shift_name": "HK-General",
-    "start_date": "2026-04-01",
-    "end_date": "2026-04-30"
-  },
-  {
-    "employee_id": "DCT113",
-    "first_name": "K.THIRUPATHI REDDY",
-    "last_name": "",
-    "shift_name": "MEP B Shift",
     "start_date": "2026-04-01",
     "end_date": "2026-04-30"
   }
