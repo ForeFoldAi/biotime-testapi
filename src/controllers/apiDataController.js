@@ -3,13 +3,20 @@ const { fetchDepartments } = require("../services/departmentService");
 const { fetchTransactions } = require("../services/transactionService");
 const runtimeStore = require("../storage/runtimeStore");
 const { applyRuleForDepartment } = require("../engines/ruleDispatcher");
-const { startOfMonth, endOfMonth, formatDate, hoursBetween } = require("../utils/dateUtils");
-const {
-  classifyDepartment,
-  getBusinessDateForTransaction,
-  inferTransactionShiftCodes,
-} = require("../utils/shiftUtils");
+const { startOfMonth, endOfMonth, formatDate } = require("../utils/dateUtils");
+const { classifyDepartment } = require("../utils/shiftUtils");
 const { formatHoursToHM } = require("../utils/formatHours");
+const {
+  buildDerivedCheckInOutByDate,
+  getRawPunchTime,
+  groupPunchesByEmployeeDate,
+  splitPunchTime,
+} = require("../utils/punchGrouping");
+const {
+  buildEmployeeAliasLookup,
+  getCanonicalEmployeeId,
+  resolveTransactionEmployeeKey,
+} = require("../utils/transactionEmployeeUtils");
 
 function parseDateRange(query) {
   if (query.start_date && query.end_date) {
@@ -521,9 +528,10 @@ async function getAttendanceTableData(req, res, next) {
     const employees = employeePayload.rows || [];
     const transactions = transactionPayload.rows || [];
 
+    const { aliasToCanonical } = buildEmployeeAliasLookup(employees);
     const employeeMap = new Map();
     for (const employee of employees || []) {
-      const employeeId = getEmployeeId(employee);
+      const employeeId = getCanonicalEmployeeId(employee);
       if (!employeeId) continue;
 
       employeeMap.set(employeeId, {
@@ -538,61 +546,47 @@ async function getAttendanceTableData(req, res, next) {
 
     const scheduleMap = normalizeScheduleRows(schedules);
     const { employeeSchedules } = buildTaggedShiftLookup();
-    const grouped = new Map();
     let skippedTransactionsNoEmployee = 0;
     let skippedTransactionsInvalidTime = 0;
 
     for (const transaction of transactions || []) {
-      const employeeId = getEmployeeId(transaction);
-      const employee = employeeMap.get(employeeId);
-      const punchDateValue = getPunchDate(transaction);
-      if (!employee || !punchDateValue) {
+      const employeeKey = resolveTransactionEmployeeKey(transaction, aliasToCanonical);
+      const rawValue = getRawPunchTime(transaction);
+      const employee = employeeMap.get(employeeKey);
+
+      if (!employee || !rawValue) {
         skippedTransactionsNoEmployee += 1;
         continue;
       }
-
-      const punchDate = new Date(punchDateValue);
-      if (Number.isNaN(punchDate.getTime())) {
+      if (!splitPunchTime(rawValue)) {
         skippedTransactionsInvalidTime += 1;
-        continue;
       }
-
-      const departmentKey = classifyDepartment(employee.department);
-      const shiftDefinitions =
-        (departmentKey === "DRIVER" && shifts.SECURITY) || shifts[departmentKey] || shifts.MEP || [];
-      const businessDate = getBusinessDateForTransaction(punchDate, shiftDefinitions);
-
-      const key = `${employeeId}|${businessDate}`;
-      if (!grouped.has(key)) {
-        grouped.set(key, {
-          employeeId,
-          date: businessDate,
-          punches: [],
-          shiftCodes: new Set(),
-        });
-      }
-
-      const bucket = grouped.get(key);
-      bucket.punches.push({
-        date: punchDate,
-        raw: String(punchDateValue),
-      });
-      const detectedCodes = inferTransactionShiftCodes(punchDate, shiftDefinitions);
-      detectedCodes.forEach((code) => bucket.shiftCodes.add(code));
     }
 
+    const punchGroups = groupPunchesByEmployeeDate(transactions, (transaction) => {
+      const employeeKey = resolveTransactionEmployeeKey(transaction, aliasToCanonical);
+      if (!employeeKey || !employeeMap.has(employeeKey)) return null;
+      return employeeKey;
+    });
+    const derivedByDate = buildDerivedCheckInOutByDate(punchGroups);
+
+    const rangeStart = formatDate(start);
+    const rangeEnd = formatDate(end);
     const rows = [];
-    grouped.forEach((bucket) => {
-      const employee = employeeMap.get(bucket.employeeId);
-      const punches = bucket.punches.sort((a, b) => a.date - b.date);
-      const checkIn = punches[0].date;
-      const checkOut = punches[punches.length - 1].date;
-      const checkInRaw = punches[0].raw;
-      const checkOutRaw = punches[punches.length - 1].raw;
-      const key = `${bucket.employeeId}|${bucket.date}`;
+
+    punchGroups.forEach((group) => {
+      if (group.punch_date < rangeStart || group.punch_date > rangeEnd) return;
+
+      const employee = employeeMap.get(group.employeeKey);
+      if (!employee) return;
+
+      const derived = derivedByDate.get(`${group.employeeKey}|${group.punch_date}`);
+      if (!derived) return;
+
+      const key = `${employee.employee_id}|${group.punch_date}`;
       const taggedShift = getTaggedShiftForDate(
         employee.employee_code,
-        bucket.date,
+        group.punch_date,
         employeeSchedules
       );
       const departmentKey = classifyDepartment(employee.department);
@@ -600,39 +594,48 @@ async function getAttendanceTableData(req, res, next) {
         (departmentKey === "DRIVER" && shifts.SECURITY) || shifts[departmentKey] || shifts.MEP || [];
       const scheduleShiftCode = scheduleMap.get(key) || "";
       const taggedShiftCode = inferShiftCodeFromShiftName(taggedShift.employeeShiftName);
-      const workingHours = Number(hoursBetween(checkIn, checkOut).toFixed(2));
+      const workingHours = Number(derived.working_hours.toFixed(2));
       const ruleResult = applyRuleForDepartment(departmentKey, {
-        employeeId: bucket.employeeId,
-        date: bucket.date,
-        checkIn,
-        checkOut,
+        employeeId: employee.employee_id,
+        date: group.punch_date,
+        checkIn: derived.checkIn,
+        checkOut: derived.checkOut,
         workingHours,
+        punchCount: derived.punch_count,
         shiftDefinitions,
         scheduledShift: scheduleShiftCode || taggedShiftCode || "",
       });
       const finalNormalShift = ruleResult.normalShiftCode || ruleResult.code || ruleResult.dutyShift || "L";
       const finalOtShift = ruleResult.otShiftCode || "";
       const rawOtHours = Number(ruleResult.otHours || 0);
+      const attendanceStatus =
+        !derived.check_in || !derived.check_out
+          ? derived.punchAttendanceStatus
+          : ruleResult.attendanceStatus || "P";
 
       rows.push({
-        date: bucket.date,
+        date: group.punch_date,
         employee_code: employee.employee_code,
         employee_id: employee.employee_id,
         employee_name: employee.employee_name,
         department: employee.department,
         position: employee.position,
         area: employee.area,
-        check_in: checkInRaw,
-        check_out: checkOutRaw,
+        check_in: derived.check_in_raw,
+        check_out: derived.check_out_raw,
+        check_in_terminal: derived.check_in_terminal_alias || "",
+        check_out_terminal: derived.check_out_terminal_alias || "",
+        check_in_area: derived.check_in_area_alias || "",
+        check_out_area: derived.check_out_area_alias || "",
         working_hours: formatHoursToHM(workingHours),
         working_hours_decimal: workingHours,
-        punch_count: punches.length,
+        punch_count: derived.punch_count,
         employee_shift_name: taggedShift.employeeShiftName,
         original_shift_timings: taggedShift.originalShiftTimings,
         scheduled_shift: scheduleShiftCode || "",
         normal_shift: finalNormalShift,
         ot_shift: finalOtShift || "",
-        attendance_status: ruleResult.attendanceStatus || "P",
+        attendance_status: attendanceStatus,
         ot_hours: formatHoursToHM(rawOtHours),
         ot_hours_decimal: rawOtHours,
         is_ot:

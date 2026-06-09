@@ -9,9 +9,18 @@ const {
 } = require("../utils/dateUtils");
 const {
   classifyDepartment,
-  getBusinessDateForTransaction,
   inferTransactionShiftCodes,
 } = require("../utils/shiftUtils");
+const {
+  buildDerivedCheckInOutByDate,
+  groupPunchesByEmployeeDate,
+  toDateTimeFromParts,
+} = require("../utils/punchGrouping");
+const {
+  buildEmployeeAliasLookup,
+  getCanonicalEmployeeId,
+  resolveTransactionEmployeeKey,
+} = require("../utils/transactionEmployeeUtils");
 
 const WEEKDAY_NAMES = [
   "SUNDAY",
@@ -126,7 +135,7 @@ function normalizeScheduleRows(rows) {
 function createEmployeeIndex(employees = []) {
   const index = new Map();
   for (const employee of employees) {
-    const employeeId = getEmployeeId(employee);
+    const employeeId = getCanonicalEmployeeId(employee);
     if (!employeeId) continue;
     const rawDepartmentName = getDepartmentName(employee);
     index.set(employeeId, {
@@ -147,44 +156,47 @@ function getShiftDefinitionsForDepartment(shiftMaster, department) {
   return shiftMaster[department] || shiftMaster.MEP || [];
 }
 
-function createGroupedTransactions(transactions, employeeIndex, shiftMaster, year, month) {
+function createGroupedTransactions(transactions, employees, employeeIndex, shiftMaster, year, month) {
   const grouped = new Map();
-  const monthStart = startOfMonth(year, month);
-  const monthEnd = endOfMonth(year, month);
+  const monthStart = formatDate(startOfMonth(year, month));
+  const monthEnd = formatDate(endOfMonth(year, month));
 
-  for (const transaction of transactions || []) {
-    const employeeId = getEmployeeId(transaction);
-    if (!employeeId) continue;
+  const { aliasToCanonical } = buildEmployeeAliasLookup(employees);
+  const punchGroups = groupPunchesByEmployeeDate(transactions, (transaction) => {
+    const employeeId = resolveTransactionEmployeeKey(transaction, aliasToCanonical);
+    if (!employeeId || !employeeIndex.has(employeeId)) return null;
+    return employeeId;
+  });
+  const derivedByDate = buildDerivedCheckInOutByDate(punchGroups);
 
+  punchGroups.forEach((group) => {
+    if (group.punch_date < monthStart || group.punch_date > monthEnd) return;
+
+    const employeeId = group.employeeKey;
     const employee = employeeIndex.get(employeeId);
     const department = employee?.department || "MEP";
     const shifts = getShiftDefinitionsForDepartment(shiftMaster, department);
+    const derived = derivedByDate.get(`${employeeId}|${group.punch_date}`);
+    if (!derived) return;
 
-    const punchDateValue = getPunchDate(transaction);
-    if (!punchDateValue) continue;
-    const punchDate = new Date(punchDateValue);
-    if (Number.isNaN(punchDate.getTime())) continue;
-
-    const businessDate = getBusinessDateForTransaction(punchDate, shifts);
-    const businessDateObj = new Date(businessDate);
-    if (businessDateObj < monthStart || businessDateObj > monthEnd) continue;
-
-    const key = `${employeeId}|${businessDate}`;
-    if (!grouped.has(key)) {
-      grouped.set(key, {
-        employeeId,
-        businessDate,
-        punches: [],
-        shiftCodes: new Set(),
-      });
+    const key = `${employeeId}|${group.punch_date}`;
+    const punches = group.punches.map((punch) =>
+      toDateTimeFromParts(group.punch_date, punch.punch_time_only)
+    );
+    const shiftCodes = new Set();
+    for (const punch of punches) {
+      const codes = inferTransactionShiftCodes(punch, shifts);
+      codes.forEach((code) => shiftCodes.add(code));
     }
 
-    const bucket = grouped.get(key);
-    bucket.punches.push(punchDate);
-
-    const codes = inferTransactionShiftCodes(punchDate, shifts);
-    codes.forEach((code) => bucket.shiftCodes.add(code));
-  }
+    grouped.set(key, {
+      employeeId,
+      businessDate: group.punch_date,
+      punches,
+      shiftCodes,
+      derived,
+    });
+  });
 
   return grouped;
 }
@@ -287,6 +299,7 @@ function processAttendance({
   const employeeIndex = createEmployeeIndex(employees || []);
   const groupedTransactions = createGroupedTransactions(
     transactions,
+    employees,
     employeeIndex,
     shiftMaster,
     year,
@@ -318,10 +331,12 @@ function processAttendance({
       const grouped = groupedTransactions.get(transactionKey);
       if (!grouped || grouped.punches.length === 0) continue;
 
-      const punches = [...grouped.punches].sort((a, b) => a - b);
-      const checkIn = punches[0];
-      const checkOut = punches[punches.length - 1];
-      const workingHours = hoursBetween(checkIn, checkOut);
+      const derived = grouped.derived;
+      const checkIn = derived?.checkIn ?? null;
+      const checkOut = derived?.checkOut ?? null;
+      const workingHours =
+        derived?.working_hours ??
+        (checkIn && checkOut ? hoursBetween(checkIn, checkOut) : 0);
       const shiftDefinitions = getShiftDefinitionsForDepartment(shiftMaster, employee.department);
       const dailyRecord = {
         employeeId: employee.employeeId,
@@ -329,6 +344,7 @@ function processAttendance({
         checkIn,
         checkOut,
         workingHours,
+        punchCount: derived?.punch_count ?? grouped.punches.length,
         shiftDefinitions,
         scheduledShift: scheduleMap.get(transactionKey) || "",
       };

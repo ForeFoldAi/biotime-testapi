@@ -5,8 +5,17 @@ const { stores } = require("../storage");
 const runtimeStore = require("../storage/runtimeStore");
 const { buildTabularReport } = require("../reports/reportBuilder");
 const { exportReportToExcel } = require("../reports/excelExporter");
-const { startOfMonth, endOfMonth, formatDate, hoursBetween } = require("../utils/dateUtils");
+const { startOfMonth, endOfMonth, formatDate } = require("../utils/dateUtils");
 const { formatHoursToHM } = require("../utils/formatHours");
+const {
+  buildDerivedCheckInOutByDate,
+  groupPunchesByEmployeeDate,
+} = require("../utils/punchGrouping");
+const {
+  buildEmployeeAliasLookup,
+  getCanonicalEmployeeId,
+  resolveTransactionEmployeeKey,
+} = require("../utils/transactionEmployeeUtils");
 const fs = require("fs/promises");
 const path = require("path");
 const { OUTPUT_DIR } = require("../config/env");
@@ -147,9 +156,10 @@ async function getEmployeeCheckinCheckout(req, res, next) {
       fetchTransactions({ startTime: start, endTime: end }),
     ]);
 
+    const { aliasToCanonical } = buildEmployeeAliasLookup(employees);
     const employeeIndex = new Map();
     for (const employee of employees || []) {
-      const employeeId = getEmployeeId(employee);
+      const employeeId = getCanonicalEmployeeId(employee);
       if (!employeeId) continue;
       employeeIndex.set(employeeId, {
         employee_id: employeeId,
@@ -160,44 +170,37 @@ async function getEmployeeCheckinCheckout(req, res, next) {
       });
     }
 
-    const grouped = new Map();
-    for (const transaction of transactions || []) {
-      const employeeId = getEmployeeId(transaction);
-      const punchDateValue = getPunchDate(transaction);
-      if (!employeeId || !punchDateValue || !employeeIndex.has(employeeId)) continue;
+    const punchGroups = groupPunchesByEmployeeDate(transactions, (transaction) => {
+      const employeeId = resolveTransactionEmployeeKey(transaction, aliasToCanonical);
+      if (!employeeId || !employeeIndex.has(employeeId)) return null;
+      return employeeId;
+    });
+    const derivedByDate = buildDerivedCheckInOutByDate(punchGroups);
 
-      const punchDate = new Date(punchDateValue);
-      if (Number.isNaN(punchDate.getTime())) continue;
+    const monthStart = formatDate(start);
+    const monthEnd = formatDate(end);
 
-      const date = formatDate(punchDate);
-      const key = `${employeeId}|${date}`;
-      if (!grouped.has(key)) {
-        grouped.set(key, {
-          employee_id: employeeId,
-          date,
-          punches: [],
-        });
-      }
-      grouped.get(key).punches.push({
-        date: punchDate,
-        raw: String(punchDateValue),
-      });
-    }
+    punchGroups.forEach((group) => {
+      if (group.punch_date < monthStart || group.punch_date > monthEnd) return;
 
-    grouped.forEach((item) => {
-      const punches = item.punches.sort((a, b) => a.date - b.date);
-      const checkIn = punches[0].date;
-      const checkOut = punches[punches.length - 1].date;
-      const wh = Number(hoursBetween(checkIn, checkOut).toFixed(2));
+      const derived = derivedByDate.get(`${group.employeeKey}|${group.punch_date}`);
+      if (!derived || !employeeIndex.has(group.employeeKey)) return;
+
+      const wh = Number(derived.working_hours.toFixed(2));
       const entry = {
-        date: item.date,
-        check_in: punches[0].raw,
-        check_out: punches[punches.length - 1].raw,
+        date: group.punch_date,
+        check_in: derived.check_in_raw,
+        check_out: derived.check_out_raw,
+        check_in_terminal: derived.check_in_terminal_alias || "",
+        check_out_terminal: derived.check_out_terminal_alias || "",
+        check_in_area: derived.check_in_area_alias || "",
+        check_out_area: derived.check_out_area_alias || "",
         working_hours: formatHoursToHM(wh),
         working_hours_decimal: wh,
-        punch_count: punches.length,
+        punch_count: derived.punch_count,
+        attendance_status: derived.punchAttendanceStatus,
       };
-      employeeIndex.get(item.employee_id).attendance.push(entry);
+      employeeIndex.get(group.employeeKey).attendance.push(entry);
     });
 
     employeeIndex.forEach((row) => {

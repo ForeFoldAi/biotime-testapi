@@ -114,3 +114,7 @@ Examples:
 - JSON report returned in `GET /report`
 - Employee details with per-day check-in/check-out in `GET /attendance/checkins`
 - Excel report generated in `outputs/attendance-report-YYYY-MM.xlsx`
+
+
+pochaiah.ch@auinfocity.com
+Admin@123
