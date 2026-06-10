@@ -2,6 +2,20 @@ const path = require("path");
 const os = require("os");
 
 const ROOT_DIR = path.resolve(__dirname, "../../");
+require("dotenv").config({ path: path.join(ROOT_DIR, ".env") });
+
+function hostFromBaseUrl(baseUrl) {
+  const withoutProtocol = String(baseUrl || "")
+    .trim()
+    .replace(/^https?:\/\//i, "");
+  return withoutProtocol.split("/")[0];
+}
+
+const BIO_TIME_BASE_URL = String(process.env.BIO_TIME_BASE_URL || "")
+  .trim()
+  .replace(/\/$/, "");
+const BIO_TIME_COMPANY_HOST = hostFromBaseUrl(BIO_TIME_BASE_URL);
+const BIO_TIME_COMPANY = String(process.env.BIO_TIME_COMPANY || "").trim();
 const IS_PACKAGED = ROOT_DIR.includes("app.asar");
 const IS_PRODUCTION = String(process.env.NODE_ENV || "").toLowerCase() === "production";
 const APP_DATA_ROOT =
@@ -16,10 +30,9 @@ module.exports = {
   IS_PACKAGED,
   IS_PRODUCTION,
   RUNTIME_ROOT,
-  BIO_TIME_BASE_URL:
-    process.env.BIO_TIME_BASE_URL ||
-    "https://auinfocity.itimedev.minervaiot.com",
-  BIO_TIME_COMPANY: process.env.BIO_TIME_COMPANY || "auinfocity",
+  BIO_TIME_BASE_URL,
+  BIO_TIME_COMPANY_HOST,
+  BIO_TIME_COMPANY,
   BIO_TIME_EMAIL: process.env.BIO_TIME_EMAIL || "demo@example.com",
   BIO_TIME_PASSWORD: process.env.BIO_TIME_PASSWORD || "password123",
   STORAGE_DIR: USE_USER_DATA_PATHS

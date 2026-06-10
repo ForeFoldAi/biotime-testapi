@@ -19,6 +19,7 @@ const {
 const fs = require("fs/promises");
 const path = require("path");
 const { OUTPUT_DIR } = require("../config/env");
+const { buildWeekoffRowsFromEmployees } = require("../utils/weekOffUtils");
 
 function parseMonthYear(query) {
   const today = new Date();
@@ -59,13 +60,16 @@ async function generateReport(req, res, next) {
             (employee) => getAreaName(employee).toLowerCase() === selectedArea.toLowerCase()
           );
 
+    const apiWeekoffs = buildWeekoffRowsFromEmployees(filteredEmployees);
+    const weekoffRows = [...mergedWeekoffRows, ...apiWeekoffs];
+
     const processed = processAttendance({
       employees: filteredEmployees,
       transactions,
       month,
       year,
       shiftMaster: shifts,
-      weekoffRows: mergedWeekoffRows,
+      weekoffRows,
       scheduleRows: schedules,
     });
 

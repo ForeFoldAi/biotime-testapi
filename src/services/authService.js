@@ -55,26 +55,27 @@ function buildAuthAttempts(credentials) {
   const usernameFromEmail = login.includes("@") ? login.split("@")[0] : login;
   const rawCompany = String(credentials.company || "").trim();
   const normalizedCompany = normalizeCompany(rawCompany);
-  const companyCandidates = [rawCompany, normalizedCompany].filter(Boolean);
-  const primaryCompany = companyCandidates[0] || "auinfocity";
+  const companyCandidates = [...new Set([rawCompany, normalizedCompany].filter(Boolean))];
 
   const attempts = [];
 
-  for (const company of [primaryCompany, ...companyCandidates]) {
-    attempts.push(
-      {
-        endpoint: "/jwt-api-token-auth/",
-        payload: { company, email: login, password },
-      },
-      {
-        endpoint: "/api-token-auth/",
-        payload: { company, email: login, password },
-      },
-      {
-        endpoint: "/staff-jwt-api-token-auth/",
-        payload: { company, username: usernameFromEmail, password },
-      }
-    );
+  if (companyCandidates.length > 0) {
+    for (const company of companyCandidates) {
+      attempts.push(
+        {
+          endpoint: "/jwt-api-token-auth/",
+          payload: { company, email: login, password },
+        },
+        {
+          endpoint: "/api-token-auth/",
+          payload: { company, email: login, password },
+        },
+        {
+          endpoint: "/staff-jwt-api-token-auth/",
+          payload: { company, username: usernameFromEmail, password },
+        }
+      );
+    }
   }
 
   attempts.push(

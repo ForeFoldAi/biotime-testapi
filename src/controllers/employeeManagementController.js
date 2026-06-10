@@ -2,8 +2,7 @@ const fs = require("fs/promises");
 const { fetchEmployees } = require("../services/employeeService");
 const runtimeStore = require("../storage/runtimeStore");
 const { stores } = require("../storage");
-
-const WEEK_DAYS = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+const { getEmployeeWeekOff } = require("../utils/weekOffUtils");
 
 function toText(value) {
   return String(value || "").trim();
@@ -119,51 +118,6 @@ function buildTimetableMapByShiftDetails() {
   return result;
 }
 
-function normalizeWeekOff(value) {
-  const text = toText(value).toLowerCase();
-  return WEEK_DAYS.includes(text) ? text : "";
-}
-
-function buildWeekOffMapFromImport() {
-  const rows = runtimeStore.getWeekoffs();
-  const result = new Map();
-  for (const row of rows) {
-    const employeeId = normalizeEmployeeId(
-      row?.employee_id || row?.emp_code || row?.employee_code || row?.id || ""
-    );
-    const weekOff = normalizeWeekOff(
-      row?.week_off || row?.weekoff || row?.weekly_off || row?.day || row?.weekday || ""
-    );
-    if (!employeeId || !weekOff) continue;
-    result.set(employeeId, weekOff);
-  }
-  return result;
-}
-
-function buildSavedWeekOffMap(payload) {
-  const result = new Map();
-  const rows = Array.isArray(payload?.rows) ? payload.rows : [];
-  for (const row of rows) {
-    const employeeId = normalizeEmployeeId(row?.employee_id || "");
-    const weekOff = normalizeWeekOff(row?.week_off || "");
-    if (!employeeId || !weekOff) continue;
-    result.set(employeeId, weekOff);
-  }
-  return result;
-}
-
-function toWeekDayFlags(weekOff) {
-  const value = normalizeWeekOff(weekOff);
-  return WEEK_DAYS.reduce((acc, day) => {
-    acc[day] = day === value;
-    return acc;
-  }, {});
-}
-
-function isSecurityDepartment(departmentName) {
-  return toText(departmentName).toLowerCase().includes("security");
-}
-
 function getUniqueSorted(values) {
   return [...new Set(values.filter(Boolean))].sort((a, b) => String(a).localeCompare(String(b)));
 }
@@ -189,9 +143,6 @@ async function getEmployeeManagementData(req, res, next) {
     const employees = await fetchEmployees({ allPages: true, maxPages: 200 });
     const shiftDetailsByEmployee = buildShiftDetailsMap();
     const timetableByShiftDetails = buildTimetableMapByShiftDetails();
-    const importedWeekOffByEmployee = buildWeekOffMapFromImport();
-    const savedPayload = await stores.employeeManagement.read();
-    const savedWeekOffByEmployee = buildSavedWeekOffMap(savedPayload);
 
     const rows = employees
       .map((employee) => {
@@ -201,10 +152,7 @@ async function getEmployeeManagementData(req, res, next) {
         const normalizedEmployeeId = normalizeEmployeeId(employeeId);
         const shiftDetails = shiftDetailsByEmployee.get(normalizedEmployeeId) || "";
         const shiftTimetable = timetableByShiftDetails.get(shiftDetails) || "";
-        const weekOff =
-          savedWeekOffByEmployee.get(normalizedEmployeeId) ||
-          importedWeekOffByEmployee.get(normalizedEmployeeId) ||
-          "";
+        const weekOff = getEmployeeWeekOff(employee);
         const department = getDepartmentName(employee) || "UNASSIGNED";
 
         return {
@@ -215,8 +163,6 @@ async function getEmployeeManagementData(req, res, next) {
           shift_details: shiftDetails,
           shift_timetable: shiftTimetable,
           week_off: weekOff,
-          has_day_selectors: !isSecurityDepartment(department),
-          week_days: toWeekDayFlags(weekOff),
         };
       })
       .filter(Boolean)
@@ -242,7 +188,7 @@ async function saveEmployeeManagementData(req, res, next) {
     const normalizedRows = rows
       .map((row) => {
         const employeeId = normalizeEmployeeId(row?.employee_id || "");
-        const weekOff = normalizeWeekOff(row?.week_off || "");
+        const weekOff = getEmployeeWeekOff(row);
         if (!employeeId || !weekOff) return null;
         return { employee_id: employeeId, week_off: weekOff };
       })

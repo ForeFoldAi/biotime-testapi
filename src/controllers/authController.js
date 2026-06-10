@@ -1,3 +1,4 @@
+const { BIO_TIME_COMPANY } = require("../config/env");
 const { authenticate, setAuthCredentials, normalizeCompany } = require("../services/authService");
 
 function isValidEmail(email) {
@@ -8,7 +9,7 @@ async function login(req, res, next) {
   try {
     const email = String(req.body?.email || "").trim();
     const password = String(req.body?.password || "");
-    const companyInput = String(req.body?.company || "").trim();
+    const companyInput = String(req.body?.company || "").trim() || BIO_TIME_COMPANY;
 
     if (!email) {
       return res.status(400).json({ message: "Email is required." });
@@ -19,11 +20,8 @@ async function login(req, res, next) {
     if (!password) {
       return res.status(400).json({ message: "Password is required." });
     }
-    if (!companyInput) {
-      return res.status(400).json({ message: "Company is required." });
-    }
 
-    const normalizedCompany = normalizeCompany(companyInput);
+    const normalizedCompany = companyInput ? normalizeCompany(companyInput) : "";
     setAuthCredentials({
       email,
       password,
@@ -34,7 +32,9 @@ async function login(req, res, next) {
     return res.json({
       message: "Login successful",
       authType: auth.type,
-      company: normalizedCompany || companyInput,
+      ...(normalizedCompany || companyInput
+        ? { company: normalizedCompany || companyInput }
+        : {}),
       email,
     });
   } catch (error) {

@@ -50,7 +50,7 @@ outputs/
 2. Create env file:
    - `cp .env.example .env`
 3. Update `.env` with real BioTime credentials.
-   - include `BIO_TIME_COMPANY=auinfocity`
+   - set `BIO_TIME_BASE_URL` and `BIO_TIME_COMPANY` for your BioTime tenant
 4. Start server:
    - `npm run dev`
 
