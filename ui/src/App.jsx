@@ -474,7 +474,7 @@ function DataTable({ rows, title, groupedByDepartment = false, columns: explicit
 
 function App() {
   const today = useMemo(() => new Date(), []);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [month, setMonth] = useState(String(today.getMonth() + 1));
@@ -700,9 +700,9 @@ function App() {
 
   async function handleLogin(event) {
     event.preventDefault();
-    if (!email.trim() || !password) {
+    if (!username.trim() || !password) {
       setStatusType("error");
-      setStatusText("Email ID and Password are required.");
+      setStatusText("User name and Password are required.");
       return;
     }
     setIsLoggingIn(true);
@@ -714,7 +714,7 @@ function App() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: email.trim(),
+          username: username.trim(),
           password,
         }),
       });
@@ -723,7 +723,7 @@ function App() {
       setStatusText("Login successful. Welcome!");
     } catch (error) {
       setStatusType("error");
-      setStatusText(error.message || "Invalid email or password.");
+      setStatusText(error.message || "Invalid user name or password.");
     } finally {
       setIsLoggingIn(false);
     }
@@ -884,8 +884,14 @@ function App() {
           <CardContent className="space-y-4">
             <form className="space-y-4" onSubmit={handleLogin}>
               <div className="space-y-2">
-                <Label htmlFor="email">Email ID</Label>
-                <Input id="email" type="email" placeholder="name@company.com" value={email} onChange={(e) => setEmail(e.target.value)} />
+                <Label htmlFor="username">User name</Label>
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="Enter your user name"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
@@ -963,7 +969,7 @@ function App() {
 
           <div className="flex items-center gap-3">
             <div className="hidden text-xs font-medium text-secondary lg:block">
-              Logged in as <span className="text-foreground">{email || "User"}</span>
+              Logged in as <span className="text-foreground">{username || "User"}</span>
             </div>
             <Button variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50" onClick={handleLogout}>
               Logout

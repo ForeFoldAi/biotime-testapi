@@ -1,21 +1,14 @@
 const { BIO_TIME_COMPANY } = require("../config/env");
 const { authenticate, setAuthCredentials, normalizeCompany } = require("../services/authService");
 
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || "").trim());
-}
-
 async function login(req, res, next) {
   try {
-    const email = String(req.body?.email || "").trim();
+    const username = String(req.body?.username || req.body?.email || "").trim();
     const password = String(req.body?.password || "");
     const companyInput = String(req.body?.company || "").trim() || BIO_TIME_COMPANY;
 
-    if (!email) {
-      return res.status(400).json({ message: "Email is required." });
-    }
-    if (!isValidEmail(email)) {
-      return res.status(400).json({ message: "Please enter a valid email address." });
+    if (!username) {
+      return res.status(400).json({ message: "User name is required." });
     }
     if (!password) {
       return res.status(400).json({ message: "Password is required." });
@@ -23,7 +16,7 @@ async function login(req, res, next) {
 
     const normalizedCompany = companyInput ? normalizeCompany(companyInput) : "";
     setAuthCredentials({
-      email,
+      email: username,
       password,
       company: normalizedCompany || companyInput,
     });
@@ -35,10 +28,10 @@ async function login(req, res, next) {
       ...(normalizedCompany || companyInput
         ? { company: normalizedCompany || companyInput }
         : {}),
-      email,
+      username,
     });
   } catch (error) {
-    return res.status(401).json({ message: "Invalid email or password." });
+    return res.status(401).json({ message: "Invalid user name or password." });
   }
 }
 
