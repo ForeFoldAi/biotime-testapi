@@ -204,7 +204,7 @@ async function saveEmployeeManagementData(req, res, next) {
     await lockFileAfterWrite(stores.employeeManagement.filePath);
 
     return res.json({
-      message: "Employee management changes saved locally.",
+      message: "Employee Management changes saved locally.",
       totalRows: normalizedRows.length,
       filePath: stores.employeeManagement.filePath,
       readOnly: true,

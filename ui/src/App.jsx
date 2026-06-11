@@ -971,7 +971,7 @@ function App() {
                 activeTab === "employee-management" ? "text-primary" : "text-secondary hover:text-foreground"
               }`}
             >
-              Employee management
+              Employee Management
               {activeTab === "employee-management" && (
                 <span className="absolute -bottom-[11px] left-0 right-0 h-0.5 bg-primary" />
               )}
@@ -1006,7 +1006,7 @@ function App() {
               <CardContent className="pt-6">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="space-y-1">
-                    <h2 className="text-lg font-semibold text-foreground">Employee management</h2>
+                    <h2 className="text-lg font-semibold text-foreground">Employee Management</h2>
                     <p className="max-w-3xl text-xs text-secondary">
                       Weekly off days are loaded from BioTime employee records. Import shift and schedule
                       files to populate shift details.

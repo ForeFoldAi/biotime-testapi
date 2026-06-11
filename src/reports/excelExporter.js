@@ -194,6 +194,26 @@ function formatDepartmentDisplayName(department) {
     .replace(/\b\w/g, (ch) => ch.toUpperCase());
 }
 
+const SECURITY_OT_UNIT_HOURS = 8;
+
+function usesSecurityOtUnits(department) {
+  return String(department || "").toUpperCase() === "SECURITY";
+}
+
+/** Security OT is reported in 8-hour units (e.g. 4h → 0.5, 12h → 1.5). */
+function formatOtDisplayValue(hours, department) {
+  const h = Number(hours || 0);
+  if (h <= 0) return "";
+  if (usesSecurityOtUnits(department)) {
+    return Math.round((h / SECURITY_OT_UNIT_HOURS) * 10) / 10;
+  }
+  return Math.round(h);
+}
+
+function sumDailyOtHours(dailyOt) {
+  return Object.values(dailyOt || {}).reduce((sum, v) => sum + Number(v || 0), 0);
+}
+
 function groupByDepartment(rows) {
   const map = new Map();
   for (const row of rows || []) {
@@ -231,14 +251,15 @@ function getStatusBackgroundColor(statusCode, hasOt = false, isOTRow = false, di
 }
 
 // AFTER
-function setColumnWidths(ws, numDays, rows, days) {
+function setColumnWidths(ws, numDays, rows, days, department) {
   const dayWidths = Array.from({ length: numDays }, (_, dayIdx) => {
     const day = days[dayIdx];
     let maxLen = 3.8;
     for (const row of rows) {
       const display = String(row.dailyDisplay?.[day] || row.daily?.[day] || "");
       const ot = Number(row.dailyOt?.[day] || 0);
-      const cellLen = Math.max(display.length, ot > 0 ? String(Math.round(ot)).length : 0);
+      const otDisplay = formatOtDisplayValue(ot, department);
+      const cellLen = Math.max(display.length, otDisplay !== "" ? String(otDisplay).length : 0);
       if (cellLen > maxLen) maxLen = cellLen;
     }
     return { wch: Math.min(maxLen + 0.5, 12) };
@@ -337,7 +358,7 @@ function buildDepartmentSheet(processedReport, department, rows) {
   const merges = [];
   const rowsMeta = initRowsMeta();
 
-  setColumnWidths(ws, numDays, rows, days);
+  setColumnWidths(ws, numDays, rows, days, department);
   buildHeaders(ws, merges, {
     month: Number(processedReport.month),
     year: Number(processedReport.year),
@@ -417,7 +438,7 @@ function buildDepartmentSheet(processedReport, department, rows) {
         ws,
         otRow,
         col,
-        dayOt > 0 ? Math.round(dayOt) : "",
+        formatOtDisplayValue(dayOt, department),
         styleOf({ size: 7, bgColor: fillOt })
       );
 
@@ -447,9 +468,8 @@ function buildDepartmentSheet(processedReport, department, rows) {
       summary.totalManDays,
     ];
     const summaryStart = COLUMNS.FIXED + numDays;
-    const roundedTotalOtHours = Math.round(
-      Object.values(row.dailyOt || {}).reduce((sum, v) => sum + Number(v || 0), 0)
-    );
+    const totalOtHours = sumDailyOtHours(row.dailyOt);
+    const totalOtDisplay = formatOtDisplayValue(totalOtHours, department);
     summaryValues.forEach((value, idx) => {
       setCell(ws, mainRow, summaryStart + idx, value || 0, styleOf({ bold: true, size: 8, bgColor: C.total_bg }));
       if (idx === 2) {
@@ -457,8 +477,12 @@ function buildDepartmentSheet(processedReport, department, rows) {
           ws,
           otRow,
           summaryStart + idx,
-          roundedTotalOtHours > 0 ? roundedTotalOtHours : "",
-          styleOf({ bold: true, size: 7, bgColor: roundedTotalOtHours > 0 ? C.ot_day : C.ot_row_bg })
+          totalOtDisplay,
+          styleOf({
+            bold: true,
+            size: 7,
+            bgColor: totalOtDisplay !== "" ? C.ot_day : C.ot_row_bg,
+          })
         );
       } else {
         setCell(ws, otRow, summaryStart + idx, "", STYLES.otSubBase);
