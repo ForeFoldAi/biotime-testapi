@@ -187,12 +187,9 @@ function isSecurityDepartment(department) {
   return value === "SECURITY";
 }
 
-function formatOtSummaryTotal(totalOtHours, department) {
+function formatSecurityOtDays(totalOtHours) {
   if (totalOtHours <= 0) return null;
-  if (isSecurityDepartment(department)) {
-    return Math.round((totalOtHours / 8) * 10) / 10;
-  }
-  return Math.round(totalOtHours);
+  return Math.round((totalOtHours / 8) * 10) / 10;
 }
 
 function formatDepartmentDisplayName(department) {
@@ -464,16 +461,19 @@ function buildDepartmentSheet(processedReport, department, rows) {
       (sum, v) => sum + Number(v || 0),
       0
     );
-    const otSummaryTotal = formatOtSummaryTotal(totalOtHours, department);
+    const rawOtHours = totalOtHours > 0 ? Math.round(totalOtHours) : null;
+    const securityOtDays = formatSecurityOtDays(totalOtHours);
     summaryValues.forEach((value, idx) => {
-      setCell(ws, mainRow, summaryStart + idx, value || 0, styleOf({ bold: true, size: 8, bgColor: C.total_bg }));
+      const mainValue =
+        idx === 2 && isSecurityDepartment(department) ? securityOtDays ?? 0 : value || 0;
+      setCell(ws, mainRow, summaryStart + idx, mainValue, styleOf({ bold: true, size: 8, bgColor: C.total_bg }));
       if (idx === 2) {
         setCell(
           ws,
           otRow,
           summaryStart + idx,
-          otSummaryTotal ?? "",
-          styleOf({ bold: true, size: 7, bgColor: otSummaryTotal != null ? C.ot_day : C.ot_row_bg })
+          rawOtHours ?? "",
+          styleOf({ bold: true, size: 7, bgColor: rawOtHours != null ? C.ot_day : C.ot_row_bg })
         );
       } else {
         setCell(ws, otRow, summaryStart + idx, "", STYLES.otSubBase);
@@ -482,7 +482,7 @@ function buildDepartmentSheet(processedReport, department, rows) {
 
     deptTotals.present += summary.present;
     deptTotals.wo += summary.wo;
-    deptTotals.ot += summary.ot;
+    deptTotals.ot += isSecurityDepartment(department) ? securityOtDays || 0 : summary.ot;
     deptTotals.ph += summary.ph;
     deptTotals.totalPresent += summary.totalPresent;
     deptTotals.totalManDays += summary.totalManDays;
