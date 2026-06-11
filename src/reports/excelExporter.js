@@ -216,6 +216,17 @@ function sumDailyOtHours(dailyOt) {
   return Object.values(dailyOt || {}).reduce((sum, v) => sum + Number(v || 0), 0);
 }
 
+function otManDayContribution(dayOtHours, department) {
+  const ot = Number(dayOtHours || 0);
+  if (ot <= 0) return 0;
+  if (usesSecurityOtUnits(department)) return ot / SECURITY_OT_UNIT_HOURS;
+  return 1;
+}
+
+function roundManDays(value) {
+  return Math.round(Number(value || 0) * 10) / 10;
+}
+
 function groupByDepartment(rows) {
   const map = new Map();
   for (const row of rows || []) {
@@ -327,7 +338,7 @@ function buildHeaders(ws, merges, context) {
   }
 }
 
-function summarizeRow(row, days, year, month) {
+function summarizeRow(row, days, year, month, department) {
   const out = { present: 0, wo: 0, ot: 0, ph: 0, totalPresent: 0, totalManDays: 0 };
   for (const day of days) {
     const code = String(row.daily?.[day] || "").toUpperCase();
@@ -345,8 +356,11 @@ function summarizeRow(row, days, year, month) {
     //if (isStrictP) out.totalPresent += 1;
     //if (isManDay) out.totalManDays += 1;
     if (isStrictP || isWeekoff) out.totalPresent += 1;
-    if (isStrictP || isWeekoff) out.totalManDays += 1;
-    if (dayOt > 0) out.totalManDays += 1;
+    if (isStrictP) out.totalManDays += 1;
+    out.totalManDays += otManDayContribution(dayOt, department);
+  }
+  if (usesSecurityOtUnits(department)) {
+    out.totalManDays = roundManDays(out.totalManDays);
   }
   return out;
 }
@@ -418,7 +432,7 @@ function buildDepartmentSheet(processedReport, department, rows) {
     setCell(ws, otRow, 2, "", STYLES.otSubBase);
     setCell(ws, otRow, 3, "", STYLES.otSubBase);
 
-    const summary = summarizeRow(row, days, processedReport.year, processedReport.month);
+    const summary = summarizeRow(row, days, processedReport.year, processedReport.month, department);
 
     // day cells
     days.forEach((day, dayIdx) => {
@@ -455,8 +469,8 @@ function buildDepartmentSheet(processedReport, department, rows) {
       //if (isStrictP) perDayTotals[dayIdx].totalPresent += 1;
       if (isStrictP || isWeekoff) perDayTotals[dayIdx].totalPresent += 1;
       //if (isManDay) perDayTotals[dayIdx].totalManDays += 1;
-      if (isStrictP || isWeekoff) perDayTotals[dayIdx].totalManDays += 1;
-      if (dayOt > 0) perDayTotals[dayIdx].totalManDays += 1;
+      if (isStrictP) perDayTotals[dayIdx].totalManDays += 1;
+      perDayTotals[dayIdx].totalManDays += otManDayContribution(dayOt, department);
     });
 
     // summary columns
@@ -519,14 +533,21 @@ function buildDepartmentSheet(processedReport, department, rows) {
     for (let c = 1; c < COLUMNS.FIXED; c += 1) setCell(ws, currentRow, c, "", STYLES.summRow);
 
     for (let dayIdx = 0; dayIdx < numDays; dayIdx += 1) {
-      const value = perDayTotals[dayIdx][key] || "";
+      let value = perDayTotals[dayIdx][key] || "";
+      if (key === "totalManDays" && usesSecurityOtUnits(department) && value !== "") {
+        value = roundManDays(value);
+      }
       setCell(ws, currentRow, COLUMNS.FIXED + dayIdx, value, STYLES.summRow);
     }
 
     for (let j = 0; j < COLUMNS.SUMMARY; j += 1) {
       setCell(ws, currentRow, summaryStart + j, "", STYLES.summRow);
     }
-    setCell(ws, currentRow, summaryStart + i, deptTotals[key] || 0, STYLES.totalCell);
+    let deptTotalValue = deptTotals[key] || 0;
+    if (key === "totalManDays" && usesSecurityOtUnits(department)) {
+      deptTotalValue = roundManDays(deptTotalValue);
+    }
+    setCell(ws, currentRow, summaryStart + i, deptTotalValue, STYLES.totalCell);
     currentRow += 1;
   }
 
