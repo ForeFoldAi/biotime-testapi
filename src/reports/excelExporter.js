@@ -465,7 +465,7 @@ function buildDepartmentSheet(processedReport, department, rows) {
       if (isStrictP) perDayTotals[dayIdx].present += 1;
       if (isWeekoff) perDayTotals[dayIdx].wo += 1;
       if (isPh) perDayTotals[dayIdx].ph += 1;
-      if (dayOt > 0) perDayTotals[dayIdx].ot += 1;
+      perDayTotals[dayIdx].ot += otManDayContribution(dayOt, department);
       //if (isStrictP) perDayTotals[dayIdx].totalPresent += 1;
       if (isStrictP || isWeekoff) perDayTotals[dayIdx].totalPresent += 1;
       //if (isManDay) perDayTotals[dayIdx].totalManDays += 1;
@@ -511,7 +511,9 @@ function buildDepartmentSheet(processedReport, department, rows) {
 
     deptTotals.present += summary.present;
     deptTotals.wo += summary.wo;
-    deptTotals.ot += summary.ot;
+    deptTotals.ot += usesSecurityOtUnits(department)
+      ? totalOtHours / SECURITY_OT_UNIT_HOURS
+      : summary.ot;
     deptTotals.ph += summary.ph;
     deptTotals.totalPresent += summary.totalPresent;
     deptTotals.totalManDays += summary.totalManDays;
@@ -534,7 +536,7 @@ function buildDepartmentSheet(processedReport, department, rows) {
 
     for (let dayIdx = 0; dayIdx < numDays; dayIdx += 1) {
       let value = perDayTotals[dayIdx][key] || "";
-      if (key === "totalManDays" && usesSecurityOtUnits(department) && value !== "") {
+      if (usesSecurityOtUnits(department) && value !== "" && (key === "totalManDays" || key === "ot")) {
         value = roundManDays(value);
       }
       setCell(ws, currentRow, COLUMNS.FIXED + dayIdx, value, STYLES.summRow);
@@ -544,7 +546,7 @@ function buildDepartmentSheet(processedReport, department, rows) {
       setCell(ws, currentRow, summaryStart + j, "", STYLES.summRow);
     }
     let deptTotalValue = deptTotals[key] || 0;
-    if (key === "totalManDays" && usesSecurityOtUnits(department)) {
+    if (usesSecurityOtUnits(department) && (key === "totalManDays" || key === "ot")) {
       deptTotalValue = roundManDays(deptTotalValue);
     }
     setCell(ws, currentRow, summaryStart + i, deptTotalValue, STYLES.totalCell);
