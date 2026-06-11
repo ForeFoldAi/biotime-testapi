@@ -3,7 +3,9 @@ const {
   BIO_TIME_EMAIL,
   BIO_TIME_PASSWORD,
   BIO_TIME_COMPANY,
+  BIO_TIME_AUTH_MODE,
 } = require("../config/env");
+const { employeeEndpoint } = require("../config/biotime");
 
 let cachedAuth = null;
 let runtimeCredentials = {
@@ -17,8 +19,21 @@ function extractToken(data) {
 }
 
 function buildAuthHeader(type, token) {
+  if (type === "Basic") return token;
   if (type === "JWT") return `JWT ${token}`;
   return `Token ${token}`;
+}
+
+function buildBasicAuthorization(username, password) {
+  const encoded = Buffer.from(`${username}:${password}`, "utf8").toString("base64");
+  return `Basic ${encoded}`;
+}
+
+function getUsernameCandidates(login) {
+  const text = String(login || "").trim();
+  if (!text) return [];
+  const usernameFromLogin = text.includes("@") ? text.split("@")[0] : text;
+  return [...new Set([text, usernameFromLogin].filter(Boolean))];
 }
 
 function normalizeCompany(companyInput) {
@@ -98,15 +113,85 @@ function buildAuthAttempts(credentials) {
   });
 }
 
-async function authenticate(force = false, overrideCredentials = {}) {
-  if (!force && cachedAuth) return cachedAuth;
+function formatAuthError(error, label) {
+  const status = error?.response?.status || "NA";
+  const responseData = error?.response?.data;
+  const message =
+    responseData?.detail ||
+    responseData?.non_field_errors?.[0] ||
+    (typeof responseData === "string" ? responseData : "") ||
+    JSON.stringify(responseData || {}) ||
+    error.message ||
+    "Unknown auth error";
+  return `${label}: ${status} ${message}`;
+}
 
-  const credentials = resolveCredentials(overrideCredentials);
+async function authenticateWithBasic(credentials) {
+  const attemptErrors = [];
+  const usernames = getUsernameCandidates(credentials.email);
+
+  for (const username of usernames) {
+    const authorization = buildBasicAuthorization(username, credentials.password);
+    try {
+      await httpClient.get(employeeEndpoint, {
+        headers: { Authorization: authorization },
+        params: { page: 1, page_size: 1 },
+      });
+      cachedAuth = {
+        type: "Basic",
+        token: authorization,
+        authorization,
+        username,
+      };
+      return cachedAuth;
+    } catch (error) {
+      attemptErrors.push(formatAuthError(error, `basic:${username}`));
+    }
+  }
+
+  throw new Error(
+    `BioTime basic authentication failed. Attempts: ${attemptErrors.join(" | ")}`
+  );
+}
+
+async function authenticateWithToken(credentials) {
   const authAttempts = buildAuthAttempts(credentials);
   const attemptErrors = [];
+  const login = String(credentials.email || "").trim();
+  const usernames = getUsernameCandidates(login);
 
   for (const attempt of authAttempts) {
     const { endpoint, payload } = attempt;
+    const basicCandidates = [
+      { username: login, password: credentials.password },
+      ...usernames
+        .filter((name) => name !== login)
+        .map((username) => ({ username, password: credentials.password })),
+    ];
+
+    for (const basicAuth of basicCandidates) {
+      try {
+        const response = await httpClient.post(endpoint, payload, {
+          auth: basicAuth,
+        });
+        const token = extractToken(response.data);
+        if (!token) continue;
+
+        const type = endpoint.includes("jwt") ? "JWT" : "Token";
+        cachedAuth = {
+          type,
+          token,
+          authorization: buildAuthHeader(type, token),
+        };
+        return cachedAuth;
+      } catch (error) {
+        const safePayload = Object.keys(payload);
+        attemptErrors.push(
+          formatAuthError(error, `${endpoint} [${safePayload.join(",")}] basic:${basicAuth.username}`)
+        );
+      }
+    }
+
     try {
       const response = await httpClient.post(endpoint, payload);
       const token = extractToken(response.data);
@@ -121,17 +206,7 @@ async function authenticate(force = false, overrideCredentials = {}) {
       return cachedAuth;
     } catch (error) {
       const safePayload = Object.keys(payload);
-      const status = error?.response?.status || "NA";
-      const responseData = error?.response?.data;
-      const message =
-        responseData?.detail ||
-        responseData?.non_field_errors?.[0] ||
-        (typeof responseData === "string" ? responseData : "") ||
-        JSON.stringify(responseData || {}) ||
-        error.message ||
-        "Unknown auth error";
-      attemptErrors.push(`${endpoint} [${safePayload.join(",")}]: ${status} ${message}`);
-      continue;
+      attemptErrors.push(formatAuthError(error, `${endpoint} [${safePayload.join(",")}]`));
     }
   }
 
@@ -140,6 +215,39 @@ async function authenticate(force = false, overrideCredentials = {}) {
       " | "
     )}`
   );
+}
+
+async function authenticate(force = false, overrideCredentials = {}) {
+  if (!force && cachedAuth) return cachedAuth;
+
+  const credentials = resolveCredentials(overrideCredentials);
+  const mode = String(BIO_TIME_AUTH_MODE || "token").toLowerCase();
+
+  if (mode === "basic") {
+    try {
+      return await authenticateWithBasic(credentials);
+    } catch (basicError) {
+      try {
+        return await authenticateWithToken(credentials);
+      } catch {
+        throw basicError;
+      }
+    }
+  }
+
+  if (mode === "token") {
+    try {
+      return await authenticateWithToken(credentials);
+    } catch (tokenError) {
+      try {
+        return await authenticateWithBasic(credentials);
+      } catch {
+        throw tokenError;
+      }
+    }
+  }
+
+  return authenticateWithToken(credentials);
 }
 
 module.exports = {

@@ -16,6 +16,9 @@ const BIO_TIME_BASE_URL = String(process.env.BIO_TIME_BASE_URL || "")
   .replace(/\/$/, "");
 const BIO_TIME_COMPANY_HOST = hostFromBaseUrl(BIO_TIME_BASE_URL);
 const BIO_TIME_COMPANY = String(process.env.BIO_TIME_COMPANY || "").trim();
+const BIO_TIME_AUTH_MODE = String(process.env.BIO_TIME_AUTH_MODE || "token")
+  .trim()
+  .toLowerCase();
 const IS_PACKAGED = ROOT_DIR.includes("app.asar");
 const IS_PRODUCTION = String(process.env.NODE_ENV || "").toLowerCase() === "production";
 const APP_DATA_ROOT =
@@ -33,6 +36,7 @@ module.exports = {
   BIO_TIME_BASE_URL,
   BIO_TIME_COMPANY_HOST,
   BIO_TIME_COMPANY,
+  BIO_TIME_AUTH_MODE,
   BIO_TIME_EMAIL: process.env.BIO_TIME_EMAIL || "demo@example.com",
   BIO_TIME_PASSWORD: process.env.BIO_TIME_PASSWORD || "password123",
   STORAGE_DIR: USE_USER_DATA_PATHS

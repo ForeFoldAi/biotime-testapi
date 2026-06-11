@@ -31,7 +31,10 @@ async function login(req, res, next) {
       username,
     });
   } catch (error) {
-    return res.status(401).json({ message: "Invalid user name or password." });
+    const detail = String(error?.message || "").trim();
+    return res.status(401).json({
+      message: detail || "Invalid user name or password.",
+    });
   }
 }
 
