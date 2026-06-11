@@ -37,6 +37,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
     "express": "^4.21.2",
     "lucide-react": "^0.544.0",
     "multer": "^2.0.2",
@@ -57,8 +58,10 @@
     "files": [
       "electron/**/*",
       "src/**/*",
+      "ui/dist/**/*",
       "package.json",
-      "node_modules/**/*"
+      "node_modules/**/*",
+      ".env"
     ],
     "extraMetadata": {
       "main": "electron/main.js",

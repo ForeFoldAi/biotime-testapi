@@ -710,7 +710,7 @@ function App() {
     setStatusText("Authenticating...");
 
     try {
-      await fetchJson("/auth/login", {
+      await fetchJson("/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -872,14 +872,24 @@ function App() {
 
   if (!isAuthenticated) {
     return (
-      <main className="flex min-h-screen items-center justify-center p-5">
+      <main
+        className="flex min-h-screen items-center justify-center p-5"
+         style={{
+         backgroundColor: "#0f172a",
+         backgroundImage: `
+         radial-gradient(ellipse 80% 60% at 20% 40%, rgba(56,189,248,0.13) 0%, transparent 60%),
+         radial-gradient(ellipse 60% 50% at 80% 70%, rgba(99,102,241,0.13) 0%, transparent 60%),
+         url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")
+         `,
+         }}
+>
         <Card className="w-full max-w-md border-primary/20 bg-card shadow-glow">
           <CardHeader className="items-center text-center">
             <Badge variant="secondary" className="w-fit">
               Secure Access
             </Badge>
-            <CardTitle className="pt-2 text-2xl">AU InfoCity - Vendor Attendance & OT Report</CardTitle>
-            <CardDescription>Sign in with your vendor credentials to continue.</CardDescription>
+            <CardTitle className="pt-2 text-2xl">AU InfoCity Workforce Portal</CardTitle>
+            <CardDescription>Access your attendance and OT reports securely</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <form className="space-y-4" onSubmit={handleLogin}>
@@ -919,6 +929,17 @@ function App() {
                 {isLoggingIn ? "Logging in..." : "Login"}
               </Button>
             </form>
+            <p className="text-center text-xs text-muted-foreground mt-2">
+              powered by{" "}
+              <a
+                href="https://forefoldai.com"
+                target="_blank"
+                rel="noreferrer"
+                className="text-primary hover:underline"
+              >
+                forefoldai.com
+              </a>
+            </p>
           </CardContent>
         </Card>
         {statusText ? (

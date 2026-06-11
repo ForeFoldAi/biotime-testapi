@@ -80,6 +80,10 @@ function buildAuthAttempts(credentials) {
 
   attempts.push(
     {
+      endpoint: "/api-token-auth/",
+      payload: { username: usernameFromEmail, password },
+    },
+    {
       endpoint: "/staff-api-token-auth/",
       payload: { username: usernameFromEmail, password },
     },

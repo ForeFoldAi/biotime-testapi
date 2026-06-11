@@ -39,7 +39,7 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", uptime: process.uptime() });
 });
 
-app.post("/auth/login", login);
+app.post("/login", login);
 
 app.post("/upload/shifts", upload.single("file"), uploadShifts);
 app.post("/upload/weekoffs", upload.single("file"), uploadWeekoffs);

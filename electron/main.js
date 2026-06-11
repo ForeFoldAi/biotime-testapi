@@ -8,7 +8,7 @@ if (typeof electron !== "object" || !electron.app || typeof electron.app.request
   process.exit(1);
 }
 
-const { app, BrowserWindow, dialog, shell } = electron;
+const { app, BrowserWindow, Menu, dialog, shell } = electron;
 
 const path = require("path");
 const fs = require("fs");
@@ -102,6 +102,7 @@ if (!gotLock) {
   app.whenReady().then(async () => {
     try {
       app.setName(APP_DISPLAY_NAME);
+      Menu.setApplicationMenu(null);
 
       // Use a writable location in packaged apps (outside app.asar).
       process.env.APP_DATA_DIR = app.getPath("userData");
