@@ -315,27 +315,41 @@ function buildHeaders(ws, merges, context) {
   }
 }
 
-function summarizeRow(row, days, year, month) {
+function summarizeRow(row, days, year, month, department) {
   const out = { present: 0, wo: 0, ot: 0, ph: 0, totalPresent: 0, totalManDays: 0 };
+  const isSecurity = isSecurityDepartment(department);
+  let totalOtHours = 0;
+
   for (const day of days) {
     const code = String(row.daily?.[day] || "").toUpperCase();
     const display = String(row.dailyDisplay?.[day] || row.daily?.[day] || "");
     const dateKey = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const dayOt = Number(row.dailyOt?.[day] || row.otHours?.[dateKey] || 0);
     const isStrictP = isExcelStrictPresent(code, display);
-    //const isManDay = isExcelManDay(code);
     const isWeekoff = code === STATUS.WEEK_OFF || code === "WO";
     const isPh = code === STATUS.PUB_HOL;
     if (isStrictP) out.present += 1;
     if (isWeekoff) out.wo += 1;
     if (isPh) out.ph += 1;
-    if (dayOt > 0) out.ot += 1;
-    //if (isStrictP) out.totalPresent += 1;
-    //if (isManDay) out.totalManDays += 1;
-    if (isStrictP || isWeekoff) out.totalPresent += 1;
-    if (isStrictP || isWeekoff) out.totalManDays += 1;
-    if (dayOt > 0) out.totalManDays += 1;
+    if (dayOt > 0) {
+      out.ot += 1;
+      totalOtHours += dayOt;
+    }
+
+    if (isSecurity) {
+      if (isStrictP) out.totalPresent += 1;
+    } else {
+      if (isStrictP || isWeekoff) out.totalPresent += 1;
+      if (isStrictP || isWeekoff) out.totalManDays += 1;
+      if (dayOt > 0) out.totalManDays += 1;
+    }
   }
+
+  if (isSecurity) {
+    const otDays = formatSecurityOtDays(totalOtHours) || 0;
+    out.totalManDays = Math.round((out.present + otDays) * 10) / 10;
+  }
+
   return out;
 }
 
@@ -406,7 +420,7 @@ function buildDepartmentSheet(processedReport, department, rows) {
     setCell(ws, otRow, 2, "", STYLES.otSubBase);
     setCell(ws, otRow, 3, "", STYLES.otSubBase);
 
-    const summary = summarizeRow(row, days, processedReport.year, processedReport.month);
+    const summary = summarizeRow(row, days, processedReport.year, processedReport.month, department);
 
     // day cells
     days.forEach((day, dayIdx) => {
@@ -439,12 +453,26 @@ function buildDepartmentSheet(processedReport, department, rows) {
       if (isStrictP) perDayTotals[dayIdx].present += 1;
       if (isWeekoff) perDayTotals[dayIdx].wo += 1;
       if (isPh) perDayTotals[dayIdx].ph += 1;
-      if (dayOt > 0) perDayTotals[dayIdx].ot += 1;
-      //if (isStrictP) perDayTotals[dayIdx].totalPresent += 1;
-      if (isStrictP || isWeekoff) perDayTotals[dayIdx].totalPresent += 1;
-      //if (isManDay) perDayTotals[dayIdx].totalManDays += 1;
-      if (isStrictP || isWeekoff) perDayTotals[dayIdx].totalManDays += 1;
-      if (dayOt > 0) perDayTotals[dayIdx].totalManDays += 1;
+      if (dayOt > 0) {
+        if (isSecurityDepartment(department)) {
+          perDayTotals[dayIdx].ot = Math.round((perDayTotals[dayIdx].ot + dayOt / 8) * 10) / 10;
+        } else {
+          perDayTotals[dayIdx].ot += 1;
+        }
+      }
+      if (isSecurityDepartment(department)) {
+        if (isStrictP) {
+          perDayTotals[dayIdx].totalPresent += 1;
+          perDayTotals[dayIdx].totalManDays += 1;
+        }
+        if (dayOt > 0) {
+          perDayTotals[dayIdx].totalManDays = Math.round((perDayTotals[dayIdx].totalManDays + dayOt / 8) * 10) / 10;
+        }
+      } else {
+        if (isStrictP || isWeekoff) perDayTotals[dayIdx].totalPresent += 1;
+        if (isStrictP || isWeekoff) perDayTotals[dayIdx].totalManDays += 1;
+        if (dayOt > 0) perDayTotals[dayIdx].totalManDays += 1;
+      }
     });
 
     // summary columns
@@ -511,7 +539,11 @@ function buildDepartmentSheet(processedReport, department, rows) {
     for (let j = 0; j < COLUMNS.SUMMARY; j += 1) {
       setCell(ws, currentRow, summaryStart + j, "", STYLES.summRow);
     }
-    setCell(ws, currentRow, summaryStart + i, deptTotals[key] || 0, STYLES.totalCell);
+    const deptTotalValue =
+      key === "ot" && isSecurityDepartment(department)
+        ? Math.round((deptTotals.ot || 0) * 10) / 10
+        : deptTotals[key] || 0;
+    setCell(ws, currentRow, summaryStart + i, deptTotalValue, STYLES.totalCell);
     currentRow += 1;
   }
 
