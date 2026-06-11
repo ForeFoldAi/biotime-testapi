@@ -182,6 +182,19 @@ function addMerge(merges, r1, c1, r2, c2) {
   merges.push({ s: { r: r1, c: c1 }, e: { r: r2, c: c2 } });
 }
 
+function isSecurityDepartment(department) {
+  const value = String(department || "").toUpperCase().replace(/[^A-Z]/g, "");
+  return value === "SECURITY";
+}
+
+function formatOtSummaryTotal(totalOtHours, department) {
+  if (totalOtHours <= 0) return null;
+  if (isSecurityDepartment(department)) {
+    return Math.round((totalOtHours / 8) * 10) / 10;
+  }
+  return Math.round(totalOtHours);
+}
+
 function formatDepartmentDisplayName(department) {
   const raw = String(department || "").trim();
   const upper = raw.toUpperCase();
@@ -447,9 +460,11 @@ function buildDepartmentSheet(processedReport, department, rows) {
       summary.totalManDays,
     ];
     const summaryStart = COLUMNS.FIXED + numDays;
-    const roundedTotalOtHours = Math.round(
-      Object.values(row.dailyOt || {}).reduce((sum, v) => sum + Number(v || 0), 0)
+    const totalOtHours = Object.values(row.dailyOt || {}).reduce(
+      (sum, v) => sum + Number(v || 0),
+      0
     );
+    const otSummaryTotal = formatOtSummaryTotal(totalOtHours, department);
     summaryValues.forEach((value, idx) => {
       setCell(ws, mainRow, summaryStart + idx, value || 0, styleOf({ bold: true, size: 8, bgColor: C.total_bg }));
       if (idx === 2) {
@@ -457,8 +472,8 @@ function buildDepartmentSheet(processedReport, department, rows) {
           ws,
           otRow,
           summaryStart + idx,
-          roundedTotalOtHours > 0 ? roundedTotalOtHours : "",
-          styleOf({ bold: true, size: 7, bgColor: roundedTotalOtHours > 0 ? C.ot_day : C.ot_row_bg })
+          otSummaryTotal ?? "",
+          styleOf({ bold: true, size: 7, bgColor: otSummaryTotal != null ? C.ot_day : C.ot_row_bg })
         );
       } else {
         setCell(ws, otRow, summaryStart + idx, "", STYLES.otSubBase);
