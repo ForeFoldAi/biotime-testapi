@@ -232,6 +232,18 @@ async function getLastReport(req, res, next) {
   }
 }
 
+function buildReportExcelFilename(month, year) {
+  return `attendance-report-${year}-${String(month).padStart(2, "0")}.xlsx`;
+}
+
+async function sendReportExcelDownload(res, filename) {
+  const outputPath = path.join(OUTPUT_DIR, filename);
+  await fs.access(outputPath);
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  return res.download(outputPath, filename);
+}
+
 async function downloadReportExcel(req, res, next) {
   try {
     const rawName = String(req.params.filename || "").trim();
@@ -242,12 +254,25 @@ async function downloadReportExcel(req, res, next) {
       throw error;
     }
 
-    const outputPath = path.join(OUTPUT_DIR, filename);
-    await fs.access(outputPath);
-    return res.download(outputPath, filename);
+    return await sendReportExcelDownload(res, filename);
   } catch (error) {
     if (error?.code === "ENOENT") {
       const notFound = new Error("Excel file not found.");
+      notFound.status = 404;
+      return next(notFound);
+    }
+    return next(error);
+  }
+}
+
+async function downloadReportExcelByPeriod(req, res, next) {
+  try {
+    const { month, year } = parseMonthYear(req.query);
+    const filename = buildReportExcelFilename(month, year);
+    return await sendReportExcelDownload(res, filename);
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      const notFound = new Error("Excel file not found for the selected month/year.");
       notFound.status = 404;
       return next(notFound);
     }
@@ -260,4 +285,6 @@ module.exports = {
   getLastReport,
   getEmployeeCheckinCheckout,
   downloadReportExcel,
+  downloadReportExcelByPeriod,
+  buildReportExcelFilename,
 };

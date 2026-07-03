@@ -195,6 +195,36 @@ function getNextShiftInstanceInCycle(windows, prevCode, prevInst) {
  * ABC OT: only full completed additional shifts; fixed hours per shift; max triple duty (chain length 3).
  * worksMerged kept for API compatibility (timeline unchanged elsewhere).
  */
+function normalizePriorShiftCodes(dailyRecord) {
+  const raw = dailyRecord?.sameDayPriorShifts || dailyRecord?.sameDayPriorDutyShifts || [];
+  return raw
+    .flatMap((value) => String(value || "").toUpperCase().match(/[ABC]/g) || [])
+    .filter(Boolean);
+}
+
+/** Minimum worked hours for a split night-C session to earn fixed C OT after same-day B. */
+const MIN_BC_NIGHT_SESSION_HOURS = 8.5;
+
+function applySameDayBcBoost(dailyRecord, primary, abc) {
+  const prior = normalizePriorShiftCodes(dailyRecord);
+  if (primary !== "C" || !prior.includes("B")) return abc;
+
+  const hours = Number(dailyRecord?.workingHours ?? 0);
+  const status = String(abc.attendance || "P").toUpperCase();
+  if (status === "L" || hours < MIN_BC_NIGHT_SESSION_HOURS) return abc;
+
+  return {
+    ...abc,
+    chain: ["B", "C"],
+    dutyShift: "BC",
+    normalShiftOverride: "B",
+    otShiftCode: "C",
+    otHours: SHIFT_OT_HOURS.C,
+    otStatus: "YES",
+    attendance: status === "LC+EL" || status === "LC" || status === "EL" ? status : "P",
+  };
+}
+
 function buildAbcChainAndOt(primary, ci, co, worksMerged, windows) {
   const primaryInst = findPrimaryShiftInstance(windows, primary, ci);
   const shiftStart = primaryInst.start;
@@ -315,13 +345,17 @@ function applyMepRules(dailyRecord) {
       otLabel: otShift === "NONE" ? "" : otShift,
       ot_label: otShift === "NONE" ? "" : otShift,
       normalShiftCode: "G",
-      otShiftCode: g.otStatus === "YES" ? "EXT" : "",
+      otShiftCode: g.otStatus === "YES" ? "PPP" : "",
       worksTimeline: worksStr,
       works_timeline: worksStr,
     };
   }
 
-  const abc = buildAbcChainAndOt(primary, ci, co, worksMerged, windows);
+  const abc = applySameDayBcBoost(
+    dailyRecord,
+    primary,
+    buildAbcChainAndOt(primary, ci, co, worksMerged, windows)
+  );
   const otShift = abc.otStatus === "YES" ? `${abc.dutyShift}-OT` : "NONE";
 
   return {
@@ -338,8 +372,8 @@ function applyMepRules(dailyRecord) {
     code: abc.dutyShift,
     otLabel: otShift === "NONE" ? "" : otShift,
     ot_label: otShift === "NONE" ? "" : otShift,
-    normalShiftCode: abc.chain[0] || primary,
-    otShiftCode: abc.otStatus === "YES" ? abc.chain.slice(1).join("") || "" : "",
+    normalShiftCode: abc.normalShiftOverride || abc.chain[0] || primary,
+    otShiftCode: abc.otStatus === "YES" ? abc.otShiftCode || abc.chain.slice(1).join("") || "" : "",
     worksTimeline: worksStr,
     works_timeline: worksStr,
   };

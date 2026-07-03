@@ -92,8 +92,14 @@ function isSamePunch(dailyRecord) {
   return Number.isFinite(inMs) && Number.isFinite(outMs) && inMs === outMs;
 }
 
+function resolvePunchCountForRules(dailyRecord) {
+  const effective = Number(dailyRecord?.effectivePunchCount);
+  if (Number.isFinite(effective)) return effective;
+  return Number(dailyRecord?.punchCount);
+}
+
 function isSinglePunch(dailyRecord) {
-  const punchCount = Number(dailyRecord?.punchCount);
+  const punchCount = resolvePunchCountForRules(dailyRecord);
   if (Number.isFinite(punchCount) && punchCount < 2) return true;
   if (!dailyRecord?.checkIn || !dailyRecord?.checkOut) return true;
   return isSamePunch(dailyRecord);

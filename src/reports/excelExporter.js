@@ -2,7 +2,7 @@ const path = require("path");
 const XLSX = require("xlsx-js-style");
 const { OUTPUT_DIR } = require("../config/env");
 const { ensureDir } = require("../utils/fileUtils");
-const { listMonthDates } = require("../utils/dateUtils");
+const { isFutureDate, listMonthDates } = require("../utils/dateUtils");
 
 const C = {
   dark_blue: "FF1F4E79",
@@ -437,7 +437,9 @@ function buildDepartmentSheet(processedReport, department, rows) {
     // day cells
     days.forEach((day, dayIdx) => {
       const col = COLUMNS.FIXED + dayIdx;
-      const code = String(row.daily?.[day] || "L");
+      const dayDate = new Date(processedReport.year, processedReport.month - 1, day);
+      const defaultCode = isFutureDate(dayDate) ? "-" : "L";
+      const code = String(row.daily?.[day] || defaultCode);
       const displayCode = String(row.dailyDisplay?.[day] || code);
       const dayOt = Number(row.dailyOt?.[day] || 0);
       const fillMain = getStatusBackgroundColor(code, dayOt > 0, false, displayCode);

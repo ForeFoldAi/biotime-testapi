@@ -13,6 +13,7 @@ const {
   getLastReport,
   getEmployeeCheckinCheckout,
   downloadReportExcel,
+  downloadReportExcelByPeriod,
 } = require("./controllers/reportController");
 const { login } = require("./controllers/authController");
 const {
@@ -48,6 +49,7 @@ app.post("/upload/timetables", upload.single("file"), uploadTimetables);
 
 app.get("/report", generateReport);
 app.get("/report/last", getLastReport);
+app.get("/report/download", downloadReportExcelByPeriod);
 app.get("/report/download/:filename", downloadReportExcel);
 app.get("/attendance/checkins", getEmployeeCheckinCheckout);
 app.get("/api/data/employees", getEmployeesData);

@@ -10,6 +10,7 @@ const {
   buildDerivedCheckInOutByDate,
   getRawPunchTime,
   groupPunchesByEmployeeDate,
+  parseDerivedMapKey,
   splitPunchTime,
 } = require("../utils/punchGrouping");
 const {
@@ -383,6 +384,10 @@ function normalizeHousekeepingOtShift({
   const expectedOtShift = nextShiftMap[String(normalShift).toUpperCase()];
   if (!expectedOtShift) return otCodes.join("+");
 
+  if (String(normalShift).toUpperCase() === "A" && otCodes.includes("C")) {
+    return "C";
+  }
+
   // For overnight continuation (e.g. B to next-day checkout), keep only true adjacent OT shift.
   const overnightWorked = checkOut.getTime() < checkIn.getTime();
   if (overnightWorked && normalShift === "B") {
@@ -512,6 +517,22 @@ async function getAllApiData(req, res, next) {
   }
 }
 
+function dedupeAttendanceRows(rows) {
+  const seen = new Set();
+  return rows.filter((row) => {
+    const key = [
+      row.employee_id || row.employee_code,
+      row.date,
+      row.check_in,
+      row.check_out,
+      row.session_index || 1,
+    ].join("|");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 async function getAttendanceTableData(req, res, next) {
   try {
     const { start, end, month, year } = parseDateRange(req.query);
@@ -574,19 +595,39 @@ async function getAttendanceTableData(req, res, next) {
     const rangeEnd = formatDate(end);
     const rows = [];
 
-    punchGroups.forEach((group) => {
-      if (group.punch_date < rangeStart || group.punch_date > rangeEnd) return;
+    const rowKeySet = new Set();
+    derivedByDate.forEach((derived, mapKey) => {
+      if (derived.punch_date < rangeStart || derived.punch_date > rangeEnd) return;
+      rowKeySet.add(mapKey);
+    });
 
-      const employee = employeeMap.get(group.employeeKey);
-      if (!employee) return;
+    const rowKeys = [...rowKeySet].sort((left, right) => {
+      const leftMeta = parseDerivedMapKey(left);
+      const rightMeta = parseDerivedMapKey(right);
+      if (leftMeta.employeeKey !== rightMeta.employeeKey) {
+        return leftMeta.employeeKey.localeCompare(rightMeta.employeeKey);
+      }
+      if (leftMeta.punchDate !== rightMeta.punchDate) {
+        return leftMeta.punchDate.localeCompare(rightMeta.punchDate);
+      }
+      return leftMeta.sessionIndex - rightMeta.sessionIndex;
+    });
+    const sameDayPriorShifts = new Map();
 
-      const derived = derivedByDate.get(`${group.employeeKey}|${group.punch_date}`);
-      if (!derived) return;
+    for (const mapKey of rowKeys) {
+      const derived = derivedByDate.get(mapKey);
+      if (!derived) continue;
 
-      const key = `${employee.employee_id}|${group.punch_date}`;
+      const employee = employeeMap.get(derived.employeeKey);
+      if (!employee) continue;
+
+      const priorKey = `${derived.employeeKey}|${derived.punch_date}`;
+      const priorShifts = sameDayPriorShifts.get(priorKey) || [];
+
+      const key = `${employee.employee_id}|${derived.punch_date}`;
       const taggedShift = getTaggedShiftForDate(
         employee.employee_code,
-        group.punch_date,
+        derived.punch_date,
         employeeSchedules
       );
       const departmentKey = classifyDepartment(employee.department);
@@ -597,15 +638,22 @@ async function getAttendanceTableData(req, res, next) {
       const workingHours = Number(derived.working_hours.toFixed(2));
       const ruleResult = applyRuleForDepartment(departmentKey, {
         employeeId: employee.employee_id,
-        date: group.punch_date,
+        date: derived.punch_date,
         checkIn: derived.checkIn,
         checkOut: derived.checkOut,
         workingHours,
         punchCount: derived.punch_count,
+        effectivePunchCount: derived.effective_punch_count ?? derived.punch_count,
         shiftDefinitions,
         scheduledShift: scheduleShiftCode || taggedShiftCode || "",
+        sameDayPriorShifts: priorShifts,
+        sessionIndex: derived.session_index || 1,
       });
-      const finalNormalShift = ruleResult.normalShiftCode || ruleResult.code || ruleResult.dutyShift || "L";
+      const dutyShiftCode = String(ruleResult.dutyShift || ruleResult.code || "").toUpperCase();
+      const finalNormalShift =
+        dutyShiftCode && dutyShiftCode !== "L"
+          ? dutyShiftCode
+          : ruleResult.normalShiftCode || ruleResult.code || ruleResult.dutyShift || "L";
       const finalOtShift = ruleResult.otShiftCode || "";
       const rawOtHours = Number(ruleResult.otHours || 0);
       const attendanceStatus =
@@ -614,7 +662,7 @@ async function getAttendanceTableData(req, res, next) {
           : ruleResult.attendanceStatus || "P";
 
       rows.push({
-        date: group.punch_date,
+        date: derived.punch_date,
         employee_code: employee.employee_code,
         employee_id: employee.employee_id,
         employee_name: employee.employee_name,
@@ -630,6 +678,7 @@ async function getAttendanceTableData(req, res, next) {
         working_hours: formatHoursToHM(workingHours),
         working_hours_decimal: workingHours,
         punch_count: derived.punch_count,
+        effective_punch_count: derived.effective_punch_count ?? derived.punch_count,
         employee_shift_name: taggedShift.employeeShiftName,
         original_shift_timings: taggedShift.originalShiftTimings,
         scheduled_shift: scheduleShiftCode || "",
@@ -641,27 +690,44 @@ async function getAttendanceTableData(req, res, next) {
         is_ot:
           ruleResult.otStatus ||
           (rawOtHours > 0 ? "YES" : "NO"),
+        resolution: derived.resolution || "",
+        session_type: derived.session_type || "",
+        session_index: derived.session_index || 1,
+        session_count: derived.session_count || 1,
       });
-    });
+
+      const priorShiftCode = String(
+        ruleResult.normalShiftCode || ruleResult.dutyShift || ruleResult.code || ""
+      ).toUpperCase();
+      if (priorShiftCode) {
+        if (!sameDayPriorShifts.has(priorKey)) sameDayPriorShifts.set(priorKey, []);
+        sameDayPriorShifts.get(priorKey).push(priorShiftCode);
+      }
+    }
 
     rows.sort((a, b) => {
-      if (a.employee_code === b.employee_code) return a.date.localeCompare(b.date);
-      return String(a.employee_code).localeCompare(String(b.employee_code));
+      if (a.employee_code !== b.employee_code) {
+        return String(a.employee_code).localeCompare(String(b.employee_code));
+      }
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      return (a.session_index || 1) - (b.session_index || 1);
     });
+
+    const uniqueRows = dedupeAttendanceRows(rows);
 
     res.json({
       month,
       year,
       start_date: formatDate(start),
       end_date: formatDate(end),
-      total_rows: rows.length,
+      total_rows: uniqueRows.length,
       verification: {
         employees: employeePayload.meta || {},
         transactions: transactionPayload.meta || {},
         skipped_transactions_no_employee: skippedTransactionsNoEmployee,
         skipped_transactions_invalid_time: skippedTransactionsInvalidTime,
       },
-      rows,
+      rows: uniqueRows,
     });
   } catch (error) {
     next(error);

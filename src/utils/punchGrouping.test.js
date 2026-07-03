@@ -1,8 +1,8 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
+const { applySecurityRules } = require("../rules/securityRules");
 const { applyMepRules } = require("../rules/mepRules");
-
 const {
   buildDerivedCheckInOutByDate,
   classifyPunchDirection,
@@ -11,6 +11,30 @@ const {
   hoursBetweenTimeOnly,
   splitPunchTime,
 } = require("./punchGrouping");
+
+test("DEEPAK overnight security rules return A4C4 P with OT", () => {
+  const grouped = groupPunchesByEmployeeDate(
+    [
+      { emp_code: "AG027929", punch_time: "2026-06-08 03:47:00", terminal_alias: "In Gate", punch_state: "255" },
+      { emp_code: "AG027929", punch_time: "2026-06-09 08:49:27", terminal_alias: "CT Out Gate", punch_state: "255" },
+    ],
+    (tx) => tx.emp_code
+  );
+  const derivedByDate = buildDerivedCheckInOutByDate(grouped);
+  const jun8 = derivedByDate.get("AG027929|2026-06-08");
+  const result = applySecurityRules({
+    date: "2026-06-08",
+    checkIn: jun8.checkIn,
+    checkOut: jun8.checkOut,
+    workingHours: jun8.working_hours,
+    punchCount: jun8.punch_count,
+    effectivePunchCount: jun8.effective_punch_count,
+  });
+
+  assert.equal(result.normalShiftCode, "A4C4");
+  assert.equal(result.attendanceStatus, "P");
+  assert.equal(result.otHours, 8);
+});
 
 const sampleInGateTransaction = {
   id: 160833955,
@@ -344,23 +368,34 @@ test("DCT01 Jun 6 stitches B shift with overnight C checkout on Jun 7", () => {
   const grouped = groupPunchesByEmployeeDate(transactions, (tx) => tx.emp_code);
   const derivedByDate = buildDerivedCheckInOutByDate(grouped);
   const jun6 = derivedByDate.get("DCT01|2026-06-06");
+  const jun6Night = derivedByDate.get("DCT01|2026-06-06#2");
   const jun7 = derivedByDate.get("DCT01|2026-06-07");
 
   assert.equal(jun6.check_in, "13:46:12");
-  assert.equal(jun6.check_out, "06:55:55");
-  assert.equal(jun6.check_out_date, "2026-06-07");
-  assert.equal(jun6.check_out_raw, "2026-06-07 06:55:55");
-  assert.equal(jun6.resolution, "multi_session_stitched");
+  assert.equal(jun6.check_out, "20:54:12");
+  assert.equal(jun6.resolution, "auto_add+out_gate");
+
+  assert.equal(jun6Night.check_in, "20:57:26");
+  assert.equal(jun6Night.check_out, "06:55:55");
+  assert.equal(jun6Night.check_out_date, "2026-06-07");
+  assert.equal(jun6Night.check_out_raw, "2026-06-07 06:55:55");
+  assert.equal(jun6Night.resolution, "cross_midnight_c");
 
   assert.equal(jun7.check_in, "06:59:00");
   assert.equal(jun7.check_out, "14:07:57");
   assert.equal(jun7.resolution, "in_gate+out_gate");
 
   const shifts = require("../storage/data/shifts.json").MEP;
-  const mep6 = applyMepRules({
+  const mep6Day = applyMepRules({
     date: "2026-06-06",
     checkIn: jun6.checkIn,
     checkOut: jun6.checkOut,
+    shiftDefinitions: shifts,
+  });
+  const mep6Night = applyMepRules({
+    date: "2026-06-06",
+    checkIn: jun6Night.checkIn,
+    checkOut: jun6Night.checkOut,
     shiftDefinitions: shifts,
   });
   const mep7 = applyMepRules({
@@ -370,9 +405,8 @@ test("DCT01 Jun 6 stitches B shift with overnight C checkout on Jun 7", () => {
     shiftDefinitions: shifts,
   });
 
-  assert.equal(mep6.code, "BC");
-  assert.equal(mep6.attendanceStatus, "P");
-  assert.equal(mep6.otHours, 10);
+  assert.equal(mep6Day.code, "B");
+  assert.equal(mep6Night.code, "C");
   assert.equal(mep7.code, "A");
   assert.equal(mep7.attendanceStatus, "P");
   assert.equal(mep7.otHours, 0);
@@ -406,7 +440,7 @@ test("DCT01 Jun 8 evening check-in stitches to Jun 9 morning checkout", () => {
   assert.equal(jun8.resolution, "cross_midnight_c");
   assert.equal(jun8.punchAttendanceStatus, "Present");
 
-  assert.equal(jun9, null);
+  assert.equal(jun9, undefined);
 
   const shifts = require("../storage/data/shifts.json").MEP;
   const mep8 = applyMepRules({
@@ -464,7 +498,7 @@ test("AG024427 Jun 7-9 links overnight C4 via morning out through 09:00", () => 
   assert.equal(jun8.check_out_date, "2026-06-09");
   assert.equal(jun8.resolution, "cross_midnight_c");
 
-  assert.equal(jun9, null);
+  assert.equal(jun9, undefined);
 });
 
 test("morning checkout after 09:00 is not used for cross-midnight", () => {
@@ -537,4 +571,154 @@ test("unknown terminals fall back to earliest and latest time", () => {
   assert.equal(derived.check_in, "07:55:13");
   assert.equal(derived.check_out, "21:38:36");
   assert.equal(derived.resolution, "time");
+});
+
+test("classifyPunchDirection prefers CT gate terminal over punch_state", () => {
+  assert.equal(
+    classifyPunchDirection({
+      punch_state: "0",
+      terminal_alias: "CT Out Gate",
+    }),
+    "out"
+  );
+  assert.equal(
+    classifyPunchDirection({
+      punch_state: "1",
+      terminal_alias: "CT In Gate",
+    }),
+    "in"
+  );
+});
+
+test("DEEPAK overnight gets effective punch count 2 and cross midnight forward", () => {
+  const grouped = groupPunchesByEmployeeDate(
+    [
+      { emp_code: "AG027929", punch_time: "2026-06-08 03:47:00", terminal_alias: "In Gate", punch_state: "255" },
+      { emp_code: "AG027929", punch_time: "2026-06-09 08:49:27", terminal_alias: "CT Out Gate", punch_state: "255" },
+    ],
+    (tx) => tx.emp_code
+  );
+  const derivedByDate = buildDerivedCheckInOutByDate(grouped);
+  const jun8 = derivedByDate.get("AG027929|2026-06-08");
+
+  assert.equal(jun8.check_in, "03:47:00");
+  assert.equal(jun8.check_out, "08:49:27");
+  assert.equal(jun8.punch_count, 1);
+  assert.equal(jun8.effective_punch_count, 2);
+  assert.equal(jun8.resolution, "cross_midnight_c");
+  assert.ok(jun8.working_hours > 29);
+});
+
+test("ag029220 orphan out before in stays on same day without fake prior row", () => {
+  const grouped = groupPunchesByEmployeeDate(
+    [
+      { emp_code: "ag029220", punch_time: "2026-06-10 12:05:27", terminal_alias: "CT Out Gate" },
+      { emp_code: "ag029220", punch_time: "2026-06-10 12:09:50", terminal_alias: "CT In Gate" },
+    ],
+    (tx) => tx.emp_code
+  );
+  const derivedByDate = buildDerivedCheckInOutByDate(grouped);
+  const jun9 = derivedByDate.get("ag029220|2026-06-09");
+  const jun10 = derivedByDate.get("ag029220|2026-06-10");
+
+  assert.equal(jun9, undefined);
+  assert.equal(jun10.check_in, "12:09:50");
+  assert.equal(jun10.check_out, "");
+  assert.equal(jun10.resolution, "single_in_gate");
+});
+
+test("AG024420 out before in on same day does not create prior-day row", () => {
+  const grouped = groupPunchesByEmployeeDate(
+    [
+      { emp_code: "AG024420", punch_time: "2026-06-10 11:52:56", terminal_alias: "CT Out Gate" },
+      { emp_code: "AG024420", punch_time: "2026-06-10 11:55:30", terminal_alias: "CT Out Gate" },
+      { emp_code: "AG024420", punch_time: "2026-06-10 12:21:53", terminal_alias: "CT In Gate" },
+    ],
+    (tx) => tx.emp_code
+  );
+  const derivedByDate = buildDerivedCheckInOutByDate(grouped);
+  const jun9 = derivedByDate.get("AG024420|2026-06-09");
+  const jun10 = derivedByDate.get("AG024420|2026-06-10");
+
+  assert.equal(jun9, undefined);
+  assert.equal(jun10.check_in, "12:21:53");
+  assert.equal(jun10.check_out, "");
+});
+
+test("sessions over 30 hours do not forward-stitch checkout", () => {
+  const grouped = groupPunchesByEmployeeDate(
+    [
+      { emp_code: "AG099999", punch_time: "2026-06-08 02:00:00", terminal_alias: "CT In Gate" },
+      { emp_code: "AG099999", punch_time: "2026-06-09 08:30:00", terminal_alias: "CT Out Gate" },
+    ],
+    (tx) => tx.emp_code
+  );
+  const derivedByDate = buildDerivedCheckInOutByDate(grouped);
+  const jun8 = derivedByDate.get("AG099999|2026-06-08");
+
+  assert.equal(jun8.check_in, "02:00:00");
+  assert.equal(jun8.check_out, "");
+  assert.equal(jun8.resolution, "single_in_gate");
+  assert.equal(jun8.effective_punch_count, 1);
+});
+
+test("CGP64496 double shift day splits morning A and night C instead of 23h stitch", () => {
+  const transactions = [
+    { emp_code: "CGP64496", punch_time: "2026-06-07 06:13:30", terminal_alias: "In Gate", punch_state: "255" },
+    { emp_code: "CGP64496", punch_time: "2026-06-07 15:18:30", terminal_alias: "Out Gate", punch_state: "255" },
+    { emp_code: "CGP64496", punch_time: "2026-06-07 20:54:39", terminal_alias: "In Gate", punch_state: "255" },
+    { emp_code: "CGP64496", punch_time: "2026-06-08 06:03:58", terminal_alias: "CT Out Gate", punch_state: "255" },
+    { emp_code: "CGP64496", punch_time: "2026-06-08 06:08:40", terminal_alias: "In Gate", punch_state: "255" },
+    { emp_code: "CGP64496", punch_time: "2026-06-08 15:32:21", terminal_alias: "CT Out Gate", punch_state: "255" },
+  ];
+
+  const grouped = groupPunchesByEmployeeDate(transactions, (tx) => tx.emp_code);
+  const derivedByDate = buildDerivedCheckInOutByDate(grouped);
+  const jun7Morning = derivedByDate.get("CGP64496|2026-06-07");
+  const jun7Night = derivedByDate.get("CGP64496|2026-06-07#2");
+  const jun8 = derivedByDate.get("CGP64496|2026-06-08");
+
+  assert.equal(jun7Morning.check_in, "06:13:30");
+  assert.equal(jun7Morning.check_out, "15:18:30");
+  assert.equal(jun7Morning.resolution, "in_gate+out_gate");
+  assert.ok(jun7Morning.working_hours >= 9 && jun7Morning.working_hours <= 9.2);
+  assert.equal(jun7Morning.punch_count, 2);
+
+  assert.equal(jun7Night.check_in, "20:54:39");
+  assert.equal(jun7Night.check_out, "06:03:58");
+  assert.equal(jun7Night.check_out_date, "2026-06-08");
+  assert.equal(jun7Night.resolution, "cross_midnight_c");
+  assert.ok(jun7Night.working_hours >= 9 && jun7Night.working_hours <= 9.3);
+  assert.equal(jun7Night.punch_count, 1);
+  assert.equal(jun7Night.effective_punch_count, 2);
+
+  assert.equal(jun8.check_in, "06:08:40");
+  assert.equal(jun8.check_out, "15:32:21");
+  assert.equal(jun8.resolution, "in_gate+out_gate");
+  assert.ok(jun8.working_hours >= 9.3 && jun8.working_hours <= 9.5);
+});
+
+test("AG020043 day A4 and night C4 split instead of 25h stitch", () => {
+  const transactions = [
+    { emp_code: "AG020043", punch_time: "2026-06-08 07:46:23", terminal_alias: "In Gate", punch_state: "0" },
+    { emp_code: "AG020043", punch_time: "2026-06-08 20:00:26", terminal_alias: "CT Out Gate", punch_state: "1" },
+    { emp_code: "AG020043", punch_time: "2026-06-08 20:02:39", terminal_alias: "CT In Gate", punch_state: "0" },
+    { emp_code: "AG020043", punch_time: "2026-06-09 08:50:23", terminal_alias: "CT Out Gate", punch_state: "1" },
+  ];
+
+  const grouped = groupPunchesByEmployeeDate(transactions, (tx) => tx.emp_code);
+  const derivedByDate = buildDerivedCheckInOutByDate(grouped);
+  const jun8Day = derivedByDate.get("AG020043|2026-06-08");
+  const jun8Night = derivedByDate.get("AG020043|2026-06-08#2");
+
+  assert.equal(jun8Day.check_in, "07:46:23");
+  assert.equal(jun8Day.check_out, "20:00:26");
+  assert.equal(jun8Day.resolution, "in_gate+out_gate");
+  assert.ok(jun8Day.working_hours >= 12 && jun8Day.working_hours <= 12.5);
+
+  assert.equal(jun8Night.check_in, "20:02:39");
+  assert.equal(jun8Night.check_out, "08:50:23");
+  assert.equal(jun8Night.check_out_date, "2026-06-09");
+  assert.equal(jun8Night.resolution, "cross_midnight_c");
+  assert.ok(jun8Night.working_hours >= 12 && jun8Night.working_hours <= 13);
 });

@@ -302,6 +302,14 @@ function exportRowsToCsv(rows, columns, filename) {
   return true;
 }
 
+function buildReportExcelFilename(month, year) {
+  return `attendance-report-${year}-${String(month).padStart(2, "0")}.xlsx`;
+}
+
+function reportPeriodKey({ month, year, area = "all" }) {
+  return `${year}-${month}-${area || "all"}`;
+}
+
 function StatusBanner({ text, type }) {
   const classes = {
     idle: "border-border bg-muted text-muted-foreground",
@@ -392,7 +400,7 @@ function DataTable({ rows, title, groupedByDepartment = false, columns: explicit
   );
 
   const renderRow = (row, index) => (
-    <tr key={`${row.employee_code || "row"}-${row.date || index}`} className="border-b border-border/60 hover:bg-muted/30">
+    <tr key={`${row.employee_code || "row"}-${row.date || index}-${row.session_index || 1}-${row.check_in || ""}`} className="border-b border-border/60 hover:bg-muted/30">
       {columns.map((column) => (
         <td key={`${column}-${index}`} className="px-3 py-2 text-xs text-card-foreground">
           {formatCellValue(column, row[column])}
@@ -488,7 +496,7 @@ function App() {
   const [tableSearch, setTableSearch] = useState("");
   const [rawTransactionFilters, setRawTransactionFilters] = useState(EMPTY_RAW_TRANSACTION_FILTERS);
   const [allApiDataNotes, setAllApiDataNotes] = useState("");
-  const [excelMeta, setExcelMeta] = useState(null);
+  const [generatedReportPeriod, setGeneratedReportPeriod] = useState(null);
   const [activeTab, setActiveTab] = useState("employee-management");
   const [employeeRows, setEmployeeRows] = useState([]);
   const [employeeFilters, setEmployeeFilters] = useState({
@@ -519,12 +527,17 @@ function App() {
     return () => clearTimeout(timer);
   }, [statusText, statusType]);
 
+  useEffect(() => {
+    setGeneratedReportPeriod(null);
+    setTableData((prev) => (prev?.kind === "report" ? null : prev));
+  }, [month, year, reportAreaFilter]);
+
   function clearDataViews() {
     setRawJson(null);
     setTableData(null);
     setTableSearch("");
     setRawTransactionFilters(EMPTY_RAW_TRANSACTION_FILTERS);
-    setExcelMeta(null);
+    setGeneratedReportPeriod(null);
   }
 
   async function fetchJson(url, options) {
@@ -625,6 +638,20 @@ function App() {
     const showing = filteredEmployeeRows.length;
     return { total, assigned, unassigned, showing };
   }, [employeeRows, filteredEmployeeRows]);
+
+  const currentReportPeriod = useMemo(
+    () => ({
+      month: String(month),
+      year: String(year),
+      area: reportAreaFilter || "all",
+    }),
+    [month, year, reportAreaFilter]
+  );
+
+  const canDownloadExcel = useMemo(() => {
+    if (!generatedReportPeriod || tableData?.kind !== "report") return false;
+    return reportPeriodKey(generatedReportPeriod) === reportPeriodKey(currentReportPeriod);
+  }, [generatedReportPeriod, currentReportPeriod, tableData?.kind]);
 
   async function fetchEmployeeManagementRows() {
     setIsRefreshingEmployees(true);
@@ -751,7 +778,13 @@ function App() {
         groupedByDepartment: false,
         columns: reportData?.report?.columns || [],
       });
-      setExcelMeta(reportData?.excel || null);
+      const reportMonth = String(reportData?.report?.month ?? month);
+      const reportYear = String(reportData?.report?.year ?? year);
+      setGeneratedReportPeriod({
+        month: reportMonth,
+        year: reportYear,
+        area: reportAreaFilter || "all",
+      });
       setStatusType("success");
       setStatusText("Report generated successfully.");
     } catch (error) {
@@ -844,15 +877,41 @@ function App() {
     }
   }
 
-  function handleDownloadExcel() {
-    const filename = excelMeta?.filename;
-    if (!filename) {
+  async function handleDownloadExcel() {
+    if (!canDownloadExcel || !generatedReportPeriod) {
       setStatusType("error");
-      setStatusText("Generate or load a report with Excel output first.");
+      setStatusText("Generate a report for the selected month and year before downloading Excel.");
       return;
     }
-    const downloadUrl = `/report/download/${encodeURIComponent(filename)}`;
-    window.location.assign(downloadUrl);
+
+    const { month: reportMonth, year: reportYear } = generatedReportPeriod;
+    const filename = buildReportExcelFilename(reportMonth, reportYear);
+    const downloadUrl = `/report/download?month=${encodeURIComponent(reportMonth)}&year=${encodeURIComponent(reportYear)}&t=${Date.now()}`;
+
+    try {
+      setStatusType("loading");
+      setStatusText("Downloading Excel...");
+      const res = await fetch(downloadUrl);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Excel download failed");
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setStatusType("success");
+      setStatusText(`Downloaded ${filename}.`);
+    } catch (error) {
+      setStatusType("error");
+      setStatusText(error.message || "Failed to download Excel.");
+    }
   }
 
   function handleLogout() {
@@ -1201,7 +1260,7 @@ function App() {
                     <FileSpreadsheet className="h-4 w-4" />
                     Generate
                   </Button>
-                  <Button variant="secondary" onClick={handleDownloadExcel} disabled={!excelMeta?.filename}>
+                  <Button variant="secondary" onClick={handleDownloadExcel} disabled={!canDownloadExcel}>
                     <Download className="h-4 w-4" />
                     Download Excel
                   </Button>

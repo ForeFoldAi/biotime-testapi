@@ -4,9 +4,12 @@ const {
   endOfMonth,
   formatDate,
   hoursBetween,
+  isFutureDate,
   listMonthDates,
   startOfMonth,
 } = require("../utils/dateUtils");
+
+const FUTURE_DAY_MARK = "-";
 const {
   classifyDepartment,
   inferTransactionShiftCodes,
@@ -14,6 +17,7 @@ const {
 const {
   buildDerivedCheckInOutByDate,
   groupPunchesByEmployeeDate,
+  parseDerivedMapKey,
   toDateTimeFromParts,
 } = require("../utils/punchGrouping");
 const {
@@ -156,6 +160,292 @@ function getShiftDefinitionsForDepartment(shiftMaster, department) {
   return shiftMaster[department] || shiftMaster.MEP || [];
 }
 
+function collectDerivedSessionsForDate(derivedByDate, employeeKey, punchDate) {
+  const baseKey = `${employeeKey}|${punchDate}`;
+  const sessions = [];
+  const primary = derivedByDate.get(baseKey);
+  if (primary) sessions.push(primary);
+
+  let sessionIndex = 2;
+  while (derivedByDate.has(`${baseKey}#${sessionIndex}`)) {
+    sessions.push(derivedByDate.get(`${baseKey}#${sessionIndex}`));
+    sessionIndex += 1;
+  }
+
+  return sessions.sort((left, right) => (left.session_index || 1) - (right.session_index || 1));
+}
+
+function consolidateDerivedSessions(sessions) {
+  if (!sessions.length) return null;
+  if (sessions.length === 1) return sessions[0];
+
+  const first = sessions[0];
+  const last = sessions[sessions.length - 1];
+  const working_hours = sessions.reduce((sum, session) => sum + Number(session.working_hours || 0), 0);
+  const punch_count = sessions.reduce((sum, session) => sum + Number(session.punch_count || 0), 0);
+  const effective_punch_count = sessions.reduce(
+    (sum, session) => sum + Number(session.effective_punch_count || session.punch_count || 0),
+    0
+  );
+
+  return {
+    ...first,
+    check_out: last.check_out,
+    check_out_raw: last.check_out_raw,
+    check_out_terminal_alias: last.check_out_terminal_alias,
+    check_out_area_alias: last.check_out_area_alias,
+    check_out_date: last.check_out_date,
+    checkOut: last.checkOut,
+    working_hours,
+    punch_count,
+    effective_punch_count,
+    session_count: sessions.length,
+    session_index: 1,
+    resolution: "multi_session_consolidated",
+  };
+}
+
+function mergeAttendanceStatuses(statuses) {
+  const normalized = statuses.map((status) => String(status || "P").toUpperCase()).filter(Boolean);
+  if (!normalized.length) return "P";
+  if (normalized.every((status) => status === "P")) return "P";
+  if (normalized.includes("LC+EL")) return "LC+EL";
+  if (normalized.includes("LC") && normalized.includes("EL")) return "LC+EL";
+  if (normalized.includes("LC")) return "LC";
+  if (normalized.includes("EL")) return "EL";
+  return normalized[normalized.length - 1];
+}
+
+function mergeSecurityDayRules(sessionResults) {
+  if (!sessionResults.length) {
+    return { code: "L", dutyShift: "L", attendanceStatus: "L", otHours: 0, otStatus: "NO" };
+  }
+  if (sessionResults.length === 1) return sessionResults[0];
+
+  const last = sessionResults[sessionResults.length - 1];
+  const dutyCodes = sessionResults.map((result) => String(result.dutyShift || result.code || "").toUpperCase());
+  let dutyShift = String(last.dutyShift || last.code || "L");
+
+  if (dutyCodes.includes("A4C4") || dutyCodes.includes("C4A4")) {
+    dutyShift = dutyCodes.find((code) => code === "A4C4" || code === "C4A4") || dutyShift;
+  } else if (dutyCodes.includes("A4") && dutyCodes.includes("C4")) {
+    dutyShift = "A4C4";
+  } else if (dutyCodes.includes("C4") && dutyCodes.includes("A4")) {
+    dutyShift = "C4A4";
+  }
+
+  const otHours = sessionResults.reduce((sum, result) => sum + Number(result.otHours || result.ot_hours || 0), 0);
+  const compositeDuty = new Set(["A4C4", "C4A4"]);
+  const attendanceStatus = compositeDuty.has(dutyShift)
+    ? String(last.attendanceStatus || last.attendance_status || "P").toUpperCase()
+    : mergeAttendanceStatuses(
+        sessionResults.map((result) => result.attendanceStatus || result.attendance_status)
+      );
+
+  return {
+    ...last,
+    dutyShift,
+    code: dutyShift,
+    shift_code: dutyShift,
+    normalShiftCode: dutyShift.startsWith("A4") ? "A4" : dutyShift.startsWith("C4") ? "C4" : last.normalShiftCode || "",
+    otShiftCode: dutyShift === "A4C4" ? "C4" : dutyShift === "C4A4" ? "A4" : last.otShiftCode || "",
+    otHours,
+    ot_hours: otHours,
+    otStatus: otHours > 0 ? "YES" : last.otStatus || "NO",
+    ot_status: otHours > 0 ? "YES" : last.ot_status || "NO",
+    attendanceStatus,
+    attendance_status: attendanceStatus,
+  };
+}
+
+function mergeMepDayRules(sessionResults) {
+  if (!sessionResults.length) {
+    return { code: "L", dutyShift: "L", attendanceStatus: "L", otHours: 0, otStatus: "NO" };
+  }
+  if (sessionResults.length === 1) return sessionResults[0];
+
+  const last = sessionResults[sessionResults.length - 1];
+  const dutyCodes = sessionResults.map((result) => String(result.dutyShift || result.code || "").toUpperCase());
+  let dutyShift = dutyCodes.find((code) => code.length > 1) || String(last.dutyShift || last.code || "L");
+
+  if (dutyCodes.includes("BC") || (dutyCodes.includes("B") && dutyCodes.includes("C"))) {
+    dutyShift = "BC";
+  } else if (dutyCodes.includes("AB") || (dutyCodes.includes("A") && dutyCodes.includes("B"))) {
+    dutyShift = "AB";
+  } else if (dutyCodes.includes("CA") || (dutyCodes.includes("C") && dutyCodes.includes("A"))) {
+    dutyShift = "CA";
+  }
+
+  const otHours = sessionResults.reduce((sum, result) => sum + Number(result.otHours || result.ot_hours || 0), 0);
+  const compositeDuty = new Set(["AB", "BC", "CA"]);
+  const first = sessionResults[0];
+  const attendanceStatus = compositeDuty.has(dutyShift)
+    ? String(first.attendanceStatus || first.attendance_status || "P").toUpperCase()
+    : mergeAttendanceStatuses(
+        sessionResults.map((result) => result.attendanceStatus || result.attendance_status)
+      );
+
+  return {
+    ...last,
+    dutyShift,
+    code: dutyShift,
+    shift_code: dutyShift,
+    normalShiftCode: dutyShift[0] || last.normalShiftCode || "",
+    otShiftCode: otHours > 0 ? dutyShift[1] || last.otShiftCode || "C" : "",
+    otHours,
+    ot_hours: otHours,
+    otStatus: otHours > 0 ? "YES" : last.otStatus || "NO",
+    ot_status: otHours > 0 ? "YES" : last.ot_status || "NO",
+    attendanceStatus,
+    attendance_status: attendanceStatus,
+  };
+}
+
+function collectSessionRuleResults(department, grouped, shiftDefinitions, scheduleShift) {
+  const priorShifts = [];
+  const sessionResults = [];
+
+  for (const sessionDerived of grouped.derivedSessions || []) {
+    const result = applyRuleForDepartment(department, {
+      employeeId: grouped.employeeId,
+      date: grouped.businessDate,
+      checkIn: sessionDerived.checkIn ?? null,
+      checkOut: sessionDerived.checkOut ?? null,
+      workingHours: sessionDerived.working_hours ?? 0,
+      punchCount: sessionDerived.punch_count ?? 0,
+      effectivePunchCount:
+        sessionDerived.effective_punch_count ?? sessionDerived.punch_count ?? 0,
+      shiftDefinitions,
+      scheduledShift: scheduleShift,
+      sameDayPriorShifts: [...priorShifts],
+      sessionIndex: sessionDerived.session_index || 1,
+    });
+    sessionResults.push(result);
+    priorShifts.push(result.normalShiftCode || result.dutyShift || result.code || "");
+  }
+
+  return sessionResults;
+}
+
+function mergeHousekeepingDayRules(sessionResults) {
+  if (!sessionResults.length) {
+    return { code: "L", dutyShift: "L", attendanceStatus: "L", otHours: 0, otStatus: "NO" };
+  }
+  if (sessionResults.length === 1) return sessionResults[0];
+
+  const last = sessionResults[sessionResults.length - 1];
+  const dutyCodes = sessionResults.map((result) => String(result.dutyShift || result.code || "").toUpperCase());
+  let dutyShift = String(last.dutyShift || last.code || "L");
+
+  if (dutyCodes.includes("AC") || (dutyCodes.includes("A") && dutyCodes.some((code) => code === "C" || code.endsWith("C")))) {
+    dutyShift = "AC";
+  } else if (dutyCodes.includes("AB")) {
+    dutyShift = "AB";
+  } else if (dutyCodes.includes("BC")) {
+    dutyShift = "BC";
+  } else if (dutyCodes.includes("CA")) {
+    dutyShift = "CA";
+  }
+
+  const otHours = sessionResults.reduce(
+    (sum, result) => sum + (result.otStatus === "YES" ? Number(result.otHours || 0) : 0),
+    0
+  );
+  const compositeDuty = new Set(["AC", "AB", "BC", "CA"]);
+  const first = sessionResults[0];
+  const attendanceStatus = compositeDuty.has(dutyShift)
+    ? String(first.attendanceStatus || first.attendance_status || "P").toUpperCase()
+    : mergeAttendanceStatuses(
+        sessionResults.map((result) => result.attendanceStatus || result.attendance_status)
+      );
+
+  return {
+    ...last,
+    dutyShift,
+    code: dutyShift,
+    shift_code: dutyShift,
+    normalShiftCode: last.normalShiftCode || dutyShift[0] || "",
+    otShiftCode: otHours > 0 ? last.otShiftCode || dutyShift[1] || "" : "",
+    otHours,
+    ot_hours: otHours,
+    otStatus: otHours > 0 ? "YES" : last.otStatus || "NO",
+    ot_status: otHours > 0 ? "YES" : last.ot_status || "NO",
+    attendanceStatus,
+    attendance_status: attendanceStatus,
+  };
+}
+
+function applyDayRulesForGrouped(department, grouped, shiftDefinitions, scheduleShift) {
+  const sessions = grouped.derivedSessions || [];
+  if (sessions.length > 1) {
+    if (department === "HOUSEKEEPING") {
+      return mergeHousekeepingDayRules(
+        collectSessionRuleResults(department, grouped, shiftDefinitions, scheduleShift)
+      );
+    }
+    if (department === "SECURITY") {
+      return mergeSecurityDayRules(
+        collectSessionRuleResults(department, grouped, shiftDefinitions, scheduleShift)
+      );
+    }
+    if (department === "MEP") {
+      return mergeMepDayRules(
+        collectSessionRuleResults(department, grouped, shiftDefinitions, scheduleShift)
+      );
+    }
+  }
+
+  const derived = grouped.derived;
+  const checkIn = derived?.checkIn ?? null;
+  const checkOut = derived?.checkOut ?? null;
+  const workingHours =
+    derived?.working_hours ?? (checkIn && checkOut ? hoursBetween(checkIn, checkOut) : 0);
+
+  return applyRuleForDepartment(department, {
+    employeeId: grouped.employeeId,
+    date: grouped.businessDate,
+    checkIn,
+    checkOut,
+    workingHours,
+    punchCount: derived?.punch_count ?? grouped.punches.length,
+    effectivePunchCount:
+      derived?.effective_punch_count ?? derived?.punch_count ?? grouped.punches.length,
+    shiftDefinitions,
+    scheduledShift: scheduleShift,
+  });
+}
+
+function upsertGroupedDay(grouped, entry) {
+  const existing = grouped.get(entry.baseKey);
+  if (!existing) {
+    grouped.set(entry.baseKey, entry.value);
+    return;
+  }
+
+  const mergedSessions = [
+    ...(existing.derivedSessions || (existing.derived ? [existing.derived] : [])),
+    ...(entry.value.derivedSessions || (entry.value.derived ? [entry.value.derived] : [])),
+  ].sort((left, right) => (left.session_index || 1) - (right.session_index || 1));
+
+  const uniqueSessions = [];
+  const seen = new Set();
+  for (const session of mergedSessions) {
+    const signature = `${session.check_in_raw}|${session.check_out_raw}|${session.session_index || 1}`;
+    if (seen.has(signature)) continue;
+    seen.add(signature);
+    uniqueSessions.push(session);
+  }
+
+  grouped.set(entry.baseKey, {
+    ...existing,
+    ...entry.value,
+    punches: entry.value.punches?.length ? entry.value.punches : existing.punches,
+    shiftCodes: entry.value.shiftCodes?.size ? entry.value.shiftCodes : existing.shiftCodes,
+    derivedSessions: uniqueSessions,
+    derived: consolidateDerivedSessions(uniqueSessions),
+  });
+}
+
 function createGroupedTransactions(transactions, employees, employeeIndex, shiftMaster, year, month) {
   const grouped = new Map();
   const monthStart = formatDate(startOfMonth(year, month));
@@ -173,13 +463,13 @@ function createGroupedTransactions(transactions, employees, employeeIndex, shift
     if (group.punch_date < monthStart || group.punch_date > monthEnd) return;
 
     const employeeId = group.employeeKey;
+    const sessions = collectDerivedSessionsForDate(derivedByDate, employeeId, group.punch_date);
+    if (!sessions.length) return;
+
+    const baseKey = `${employeeId}|${group.punch_date}`;
     const employee = employeeIndex.get(employeeId);
     const department = employee?.department || "MEP";
     const shifts = getShiftDefinitionsForDepartment(shiftMaster, department);
-    const derived = derivedByDate.get(`${employeeId}|${group.punch_date}`);
-    if (!derived) return;
-
-    const key = `${employeeId}|${group.punch_date}`;
     const punches = group.punches.map((punch) =>
       toDateTimeFromParts(group.punch_date, punch.punch_time_only)
     );
@@ -189,12 +479,41 @@ function createGroupedTransactions(transactions, employees, employeeIndex, shift
       codes.forEach((code) => shiftCodes.add(code));
     }
 
-    grouped.set(key, {
-      employeeId,
-      businessDate: group.punch_date,
-      punches,
-      shiftCodes,
-      derived,
+    upsertGroupedDay(grouped, {
+      baseKey,
+      value: {
+        employeeId,
+        businessDate: group.punch_date,
+        punches,
+        shiftCodes,
+        derivedSessions: sessions,
+        derived: consolidateDerivedSessions(sessions),
+      },
+    });
+  });
+
+  derivedByDate.forEach((derived, mapKey) => {
+    const { employeeKey, punchDate, sessionIndex } = parseDerivedMapKey(mapKey);
+    if (sessionIndex > 1) return;
+    if (derived.punch_date < monthStart || derived.punch_date > monthEnd) return;
+    if (!derived.check_in && !derived.check_out) return;
+
+    const baseKey = `${employeeKey}|${punchDate}`;
+    if (grouped.has(baseKey)) return;
+
+    const sessions = collectDerivedSessionsForDate(derivedByDate, employeeKey, punchDate);
+    if (!sessions.length) return;
+
+    upsertGroupedDay(grouped, {
+      baseKey,
+      value: {
+        employeeId: employeeKey,
+        businessDate: punchDate,
+        punches: [],
+        shiftCodes: new Set(),
+        derivedSessions: sessions,
+        derived: consolidateDerivedSessions(sessions),
+      },
     });
   });
 
@@ -225,7 +544,7 @@ function isStrictPresent(status) {
   return String(status || "").trim().toUpperCase() === "P";
 }
 
-/** MEP/O&M: weekly off only if an adjacent calendar day has strict Present (P) attendance. */
+/** MEP: weekly off only if an adjacent calendar day has strict Present (P) attendance. */
 function evaluateMepWeeklyOffFromAdjacentPresent(dateObj, weeklyOffDay, getRuleResultForDateStr) {
   const weekday = WEEKDAY_NAMES[dateObj.getDay()];
   if (!weeklyOffDay || weekday !== weeklyOffDay) return null;
@@ -259,16 +578,34 @@ function splitCompositeDutyCode(code) {
   return null;
 }
 
-function formatDisplayCodeWithAttendanceStatus(code, attendanceStatus) {
-  const base = String(code || "L");
+function formatDisplayCodeWithAttendanceStatus(code, attendanceStatus, options = {}) {
+  const base = String(code || "L").toUpperCase();
   const status = String(attendanceStatus || "P").toUpperCase();
+  const otShiftCode = String(options.otShiftCode || "").trim().toUpperCase();
+  const otStatus = String(options.otStatus || "NO").toUpperCase();
   if (!base || base === "L" || base === "W/O" || base === "WO") return base || "L";
 
+  const hkComposite = new Set(["AC", "AB", "BC", "CA"]);
   const parts = splitCompositeDutyCode(base);
+  let display;
   if (parts) {
-    return `${parts[0]}-[${status}]${parts[1]}`;
+    if (hkComposite.has(base)) {
+      display = `${parts[0]}[${status}]${parts[1]}`;
+    } else {
+      display = `${parts[0]}-[${status}]${parts[1]}`;
+    }
+  } else {
+    display = `${base}[${status}]`;
   }
-  return `${base}[${status}]`;
+
+  if (otStatus === "YES" && otShiftCode && !display.endsWith(otShiftCode)) {
+    const otAlreadyInDuty = parts ? parts.slice(1).join("").includes(otShiftCode) : false;
+    if (!otAlreadyInDuty) {
+      display = `${display}${otShiftCode}`;
+    }
+  }
+
+  return display;
 }
 
 /** Housekeeping general shifts should report as G8 / G9, not legacy G / G1 / G2. */
@@ -321,6 +658,7 @@ function processAttendance({
       daily: {},
       dailyDisplay: {},
       dailyOt: {},
+      dailyHours: {},
       totals: { presentDays: 0, otHours: 0 },
     };
 
@@ -329,26 +667,19 @@ function processAttendance({
       const dateStr = formatDate(new Date(year, month - 1, day));
       const transactionKey = `${employee.employeeId}|${dateStr}`;
       const grouped = groupedTransactions.get(transactionKey);
-      if (!grouped || grouped.punches.length === 0) continue;
+      if (!grouped) continue;
+      if (!grouped.derived?.check_in && !grouped.derived?.check_out && grouped.punches.length === 0) continue;
 
-      const derived = grouped.derived;
-      const checkIn = derived?.checkIn ?? null;
-      const checkOut = derived?.checkOut ?? null;
-      const workingHours =
-        derived?.working_hours ??
-        (checkIn && checkOut ? hoursBetween(checkIn, checkOut) : 0);
       const shiftDefinitions = getShiftDefinitionsForDepartment(shiftMaster, employee.department);
-      const dailyRecord = {
-        employeeId: employee.employeeId,
-        date: dateStr,
-        checkIn,
-        checkOut,
-        workingHours,
-        punchCount: derived?.punch_count ?? grouped.punches.length,
-        shiftDefinitions,
-        scheduledShift: scheduleMap.get(transactionKey) || "",
-      };
-      ruleCache.set(transactionKey, applyRuleForDepartment(employee.department, dailyRecord));
+      ruleCache.set(
+        transactionKey,
+        applyDayRulesForGrouped(
+          employee.department,
+          grouped,
+          shiftDefinitions,
+          scheduleMap.get(transactionKey) || ""
+        )
+      );
     }
 
     for (const day of days) {
@@ -357,7 +688,15 @@ function processAttendance({
       const transactionKey = `${employee.employeeId}|${dateStr}`;
       const grouped = groupedTransactions.get(transactionKey);
 
-      if (!grouped || grouped.punches.length === 0) {
+      if (isFutureDate(dateObj)) {
+        row.daily[day] = FUTURE_DAY_MARK;
+        row.dailyDisplay[day] = FUTURE_DAY_MARK;
+        row.dailyOt[day] = 0;
+        row.dailyHours[day] = 0;
+        continue;
+      }
+
+      if (!grouped || (!grouped.derived?.check_in && !grouped.derived?.check_out && grouped.punches.length === 0)) {
         let weekoffCode = null;
         if (
           employee.department === "MEP" ||
@@ -382,6 +721,7 @@ function processAttendance({
         row.daily[day] = baseCode;
         row.dailyDisplay[day] = baseCode;
         row.dailyOt[day] = 0;
+        row.dailyHours[day] = 0;
         continue;
       }
 
@@ -391,9 +731,14 @@ function processAttendance({
         baseCode = normalizeHousekeepingDailyCode(baseCode, ruleResult);
       }
       const attendanceStatus = ruleResult.attendanceStatus || "P";
+      const consolidatedHours = Number(grouped.derived?.working_hours || 0);
       row.daily[day] = baseCode;
-      row.dailyDisplay[day] = formatDisplayCodeWithAttendanceStatus(baseCode, attendanceStatus);
+      row.dailyDisplay[day] = formatDisplayCodeWithAttendanceStatus(baseCode, attendanceStatus, {
+        otShiftCode: ruleResult.otShiftCode || "",
+        otStatus: ruleResult.otStatus || ruleResult.ot_status || "NO",
+      });
       row.dailyOt[day] = ruleResult.otStatus === "YES" ? Number(ruleResult.otHours || 0) : 0;
+      row.dailyHours[day] = Math.round(consolidatedHours * 100) / 100;
       if (attendanceStatus === "P") {
         row.totals.presentDays += 1;
       }
@@ -416,4 +761,10 @@ function processAttendance({
 
 module.exports = {
   processAttendance,
+  _internal: {
+    collectDerivedSessionsForDate,
+    consolidateDerivedSessions,
+    mergeHousekeepingDayRules,
+    applyDayRulesForGrouped,
+  },
 };

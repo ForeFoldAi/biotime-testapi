@@ -6,6 +6,8 @@ const C_END = 6 * 60 + DAY_MINUTES; // Always next-day end (30:00)
 const OT_GRACE_MINUTES = 15;
 /** Same grace on check-in (late after start + this) and check-out (early leave before end − this). */
 const ATTEND_GRACE_MINUTES = 15;
+/** Fixed OT hours when the adjacent / night shift is fully satisfied. */
+const SHIFT_OT_HOURS = { A: 9, B: 6, C: 9 };
 
 const FALLBACK_WINDOWS = {
   G9: { code: "G9", start: 9 * 60, end: 18 * 60, overnight: false },
@@ -116,6 +118,51 @@ function resolveNextShiftEndMinute(primaryCode, primaryInstance) {
   return primaryInstance.end;
 }
 
+function normalizePriorShiftCodes(dailyRecord) {
+  const raw = dailyRecord?.sameDayPriorShifts || dailyRecord?.sameDayPriorDutyShifts || [];
+  return raw
+    .flatMap((value) => String(value || "").toUpperCase().match(/[ABC]/g) || [])
+    .filter(Boolean);
+}
+
+function applySameDayDoubleShiftBoost(dailyRecord, primary, abc) {
+  const prior = normalizePriorShiftCodes(dailyRecord);
+  if (primary !== "C" || !prior.includes("A") || abc.otStatus !== "YES") return abc;
+
+  return {
+    ...abc,
+    chain: ["A", "C"],
+    dutyShift: "AC",
+    otShiftCode: "C",
+    normalShiftOverride: "A",
+    otHours: SHIFT_OT_HOURS.C,
+    otStatus: "YES",
+    attendance: "P",
+  };
+}
+
+function buildChainResult({
+  chain,
+  dutyShift,
+  otStatus,
+  otHours,
+  attendance,
+  primaryInst,
+  otShiftCode = "",
+  normalShiftOverride = "",
+}) {
+  return {
+    chain,
+    dutyShift,
+    otStatus,
+    otHours,
+    attendance,
+    primaryInst,
+    otShiftCode: otShiftCode || (otStatus === "YES" ? chain[1] || chain[0] || "" : ""),
+    normalShiftOverride,
+  };
+}
+
 /**
  * Check-in only. Priority: A → G8 → G9 → B → C.
  * A: 04:01–07:00, G8: 07:01–08:30, G9: 08:31–11:00, B: 11:01–19:00, C: 19:01–04:00 (+1)
@@ -193,10 +240,21 @@ function buildWorksTimeline(workStart, workEnd, windows, codes = ["G9", "G8", "A
   return merged;
 }
 
+/** Housekeeping night C ends at 06:00 next morning; gate checkout shortly after is still present. */
+const HK_C_MORNING_END_MINUTES = 6 * 60;
+
 /** Late / early vs shift instance bounds with symmetric ATTEND_GRACE_MINUTES on in and out. */
+function resolveAttendanceShiftEnd(ci, shiftInstance) {
+  if (shiftInstance.overnight && shiftInstance.code === "C") {
+    const dayBase = Math.floor(ci / DAY_MINUTES) * DAY_MINUTES;
+    return dayBase + DAY_MINUTES + HK_C_MORNING_END_MINUTES;
+  }
+  return shiftInstance.end;
+}
+
 function attendanceForShift({ ci, co, shiftInstance }) {
   const shiftStart = shiftInstance.start;
-  const shiftEnd = shiftInstance.end;
+  const shiftEnd = resolveAttendanceShiftEnd(ci, shiftInstance);
   const lateThreshold = shiftStart + ATTEND_GRACE_MINUTES;
   const lc = ci > lateThreshold;
   const el = co < shiftEnd - ATTEND_GRACE_MINUTES;
@@ -229,11 +287,17 @@ function buildLoss(reason) {
   };
 }
 
+function resolvePunchCountForRules(dailyRecord) {
+  const effective = Number(dailyRecord?.effectivePunchCount);
+  if (Number.isFinite(effective) && effective > 0) return effective;
+  return Number(dailyRecord?.punchCount);
+}
+
 function parsePunchMeta(dailyRecord) {
   const inMs = new Date(dailyRecord?.checkIn || 0).getTime();
   const outMs = new Date(dailyRecord?.checkOut || 0).getTime();
-  const hasPunchCount = Number.isFinite(Number(dailyRecord?.punchCount));
-  const punchCount = hasPunchCount ? Number(dailyRecord.punchCount) : null;
+  const punchCount = resolvePunchCountForRules(dailyRecord);
+  const hasPunchCount = Number.isFinite(punchCount);
   const samePunch = Number.isFinite(inMs) && Number.isFinite(outMs) && inMs === outMs;
   return { inMs, outMs, hasPunchCount, punchCount, samePunch };
 }
@@ -269,8 +333,8 @@ function shouldShortCircuitInvalidPunch(dailyRecord) {
   const hasWorkingHours = Number.isFinite(Number(dailyRecord?.workingHours));
   if (hasWorkingHours && Number(dailyRecord.workingHours) <= 0) return true;
 
-  const hasPunchCount = Number.isFinite(Number(dailyRecord?.punchCount));
-  if (hasPunchCount && Number(dailyRecord.punchCount) < 2) return true;
+  const hasPunchCount = Number.isFinite(resolvePunchCountForRules(dailyRecord));
+  if (hasPunchCount && resolvePunchCountForRules(dailyRecord) < 2) return true;
 
   return false;
 }
@@ -312,110 +376,116 @@ function buildAbcChain(primary, ci, co, worksMerged, windows) {
   });
   const dayOffset = Math.floor(primaryInst.start / DAY_MINUTES);
   const bFullEnd = coreIntervalAbsolute(windows, "B", dayOffset).end;
+  const cFullEnd = coreIntervalAbsolute(windows, "C", dayOffset).end;
 
   if (primary === "A") {
     if (co <= primaryInst.end) {
-      return {
+      return buildChainResult({
         chain: [primary],
         dutyShift: primary,
         otStatus: "NO",
         otHours: 0,
         attendance: att.status,
         primaryInst,
-      };
+      });
     }
-    if (co < bFullEnd - OT_GRACE_MINUTES) {
-      return {
-        chain: [primary],
-        dutyShift: primary,
-        otStatus: "NOT_QUALIFIED",
-        otHours: 0,
+    if (co >= cFullEnd - OT_GRACE_MINUTES) {
+      return buildChainResult({
+        chain: ["A", "C"],
+        dutyShift: "AC",
+        otStatus: "YES",
+        otHours: SHIFT_OT_HOURS.C,
         attendance: att.status,
         primaryInst,
-      };
+        otShiftCode: "C",
+      });
     }
-    return {
-      chain: ["A", "B"],
-      dutyShift: "AB",
-      otStatus: "YES",
-      otHours: 6,
+    if (co >= bFullEnd - OT_GRACE_MINUTES) {
+      return buildChainResult({
+        chain: ["A", "B"],
+        dutyShift: "AB",
+        otStatus: "YES",
+        otHours: SHIFT_OT_HOURS.B,
+        attendance: att.status,
+        primaryInst,
+        otShiftCode: "B",
+      });
+    }
+    return buildChainResult({
+      chain: [primary],
+      dutyShift: primary,
+      otStatus: "NOT_QUALIFIED",
+      otHours: 0,
       attendance: att.status,
       primaryInst,
-    };
+    });
   }
 
   if (primary === "B") {
     if (co <= primaryInst.end) {
-      return {
+      return buildChainResult({
         chain: [primary],
         dutyShift: primary,
         otStatus: "NO",
         otHours: 0,
         attendance: att.status,
         primaryInst,
-      };
+      });
     }
-    const cFullEnd = resolveNextShiftEndMinute(primary, primaryInst);
-    if (co < cFullEnd - OT_GRACE_MINUTES) {
-      return {
+    const cChainEnd = resolveNextShiftEndMinute(primary, primaryInst);
+    if (co < cChainEnd - OT_GRACE_MINUTES) {
+      return buildChainResult({
         chain: [primary],
         dutyShift: primary,
         otStatus: "NOT_QUALIFIED",
         otHours: 0,
         attendance: att.status,
         primaryInst,
-      };
+      });
     }
-    return {
-      chain: [primary, "C"],
+    return buildChainResult({
+      chain: ["B", "C"],
       dutyShift: "BC",
       otStatus: "YES",
-      otHours: 9,
+      otHours: SHIFT_OT_HOURS.C,
       attendance: att.status,
       primaryInst,
-    };
+      otShiftCode: "C",
+    });
   }
 
   if (primary === "C") {
     const aFullEnd = resolveNextShiftEndMinute(primary, primaryInst);
-    if (co <= primaryInst.end) {
-      return {
-        chain: [primary],
-        dutyShift: primary,
-        otStatus: "NO",
-        otHours: 0,
-        attendance: att.status,
-        primaryInst,
-      };
-    }
     if (co < aFullEnd - OT_GRACE_MINUTES) {
-      return {
+      return buildChainResult({
         chain: [primary],
         dutyShift: primary,
-        otStatus: "NOT_QUALIFIED",
-        otHours: 0,
+        otStatus: "YES",
+        otHours: SHIFT_OT_HOURS.C,
         attendance: att.status,
         primaryInst,
-      };
+        otShiftCode: "C",
+      });
     }
-    return {
+    return buildChainResult({
       chain: ["C", "A"],
       dutyShift: "CA",
       otStatus: "YES",
-      otHours: 9,
+      otHours: SHIFT_OT_HOURS.A,
       attendance: att.status,
       primaryInst,
-    };
+      otShiftCode: "A",
+    });
   }
 
-  return {
+  return buildChainResult({
     chain: [primary],
     dutyShift: primary,
     otStatus: "NO",
     otHours: 0,
     attendance: att.status,
     primaryInst,
-  };
+  });
 }
 
 function applyHousekeepingRules(dailyRecord) {
@@ -466,8 +536,13 @@ function applyHousekeepingRules(dailyRecord) {
   const worksMerged = worksForPrimary;
   const worksStr = primaryWorksStr;
 
-  const abc = buildAbcChain(primary, ci, co, worksMerged, windows);
+  const abc = applySameDayDoubleShiftBoost(
+    dailyRecord,
+    primary,
+    buildAbcChain(primary, ci, co, worksMerged, windows)
+  );
   const otShift = abc.otStatus === "YES" ? `${abc.chain.slice(0, 2).join("")}-OT` : "NONE";
+  const normalShiftCode = abc.normalShiftOverride || abc.chain[0] || primary;
 
   return {
     dutyShift: abc.dutyShift,
@@ -483,11 +558,17 @@ function applyHousekeepingRules(dailyRecord) {
     ot_status: abc.otStatus,
     otLabel: otShift === "NONE" ? "" : otShift,
     ot_label: otShift === "NONE" ? "" : otShift,
-    normalShiftCode: abc.chain[0] || primary,
-    otShiftCode: abc.otStatus === "YES" ? abc.chain[1] || "" : "",
+    normalShiftCode,
+    otShiftCode: abc.otStatus === "YES" ? abc.otShiftCode || abc.chain[1] || abc.chain[0] || "" : "",
     worksTimeline: worksStr,
     works_timeline: worksStr,
   };
 }
 
-module.exports = { applyHousekeepingRules };
+module.exports = {
+  applyHousekeepingRules,
+  _internal: {
+    buildAbcChain,
+    SHIFT_OT_HOURS,
+  },
+};

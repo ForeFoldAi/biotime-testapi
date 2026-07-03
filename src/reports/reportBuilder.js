@@ -1,4 +1,4 @@
-const { listMonthDates } = require("../utils/dateUtils");
+const { isFutureDate, listMonthDates } = require("../utils/dateUtils");
 const { formatHoursToHM } = require("../utils/formatHours");
 
 function buildTabularReport(processedAttendance) {
@@ -8,7 +8,8 @@ function buildTabularReport(processedAttendance) {
   const reportRows = rows.map((row) => {
     const dayColumns = {};
     for (const day of days) {
-      dayColumns[String(day)] = row.daily[day] || "L";
+      const defaultCode = isFutureDate(new Date(year, month - 1, day)) ? "-" : "L";
+      dayColumns[String(day)] = row.dailyDisplay?.[day] || row.daily[day] || defaultCode;
     }
 
     const rawOt = row.totals.otHours;

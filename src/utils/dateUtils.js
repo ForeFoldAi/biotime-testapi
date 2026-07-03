@@ -49,6 +49,15 @@ function addDays(dateInput, offset) {
   return clone;
 }
 
+function startOfDay(dateInput) {
+  const date = toDate(dateInput);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
+}
+
+function isFutureDate(dateInput, relativeTo = new Date()) {
+  return startOfDay(dateInput).getTime() > startOfDay(relativeTo).getTime();
+}
+
 module.exports = {
   addDays,
   endOfMonth,
@@ -56,6 +65,8 @@ module.exports = {
   formatDateTimeForApi,
   formatTime,
   hoursBetween,
+  isFutureDate,
   listMonthDates,
+  startOfDay,
   startOfMonth,
 };

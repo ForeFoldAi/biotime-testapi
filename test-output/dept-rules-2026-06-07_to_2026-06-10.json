@@ -1,0 +1,2201 @@
+{
+  "range": {
+    "startDate": "2026-06-07",
+    "endDate": "2026-06-10"
+  },
+  "totals": {
+    "detail_rows": 192,
+    "employees": 148,
+    "transactions": 849,
+    "flagged_rows": 130
+  },
+  "departments": [
+    {
+      "deptName": "House Keeping",
+      "deptKey": "HOUSEKEEPING",
+      "employees": 23,
+      "totalRows": 77,
+      "byDate": {
+        "2026-06-07": 24,
+        "2026-06-08": 23,
+        "2026-06-10": 12,
+        "2026-06-09": 18
+      },
+      "shiftCounts": {
+        "G8": 1,
+        "G9": 1,
+        "L": 29,
+        "A": 30,
+        "A+B": 5,
+        "A+C": 5,
+        "B": 6
+      },
+      "otTotal": {
+        "hours": 75,
+        "rows": 10
+      },
+      "flagged": [
+        {
+          "date": "2026-06-10",
+          "emp": "CG98508",
+          "name": "T.SWATHI",
+          "in": "2026-06-10 07:33:16",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "CGP59798",
+          "name": "N.VENKANNA",
+          "in": "2026-06-09 05:10:21",
+          "out": "2026-06-09 21:01:24",
+          "hours": "15 hr 51 mins",
+          "shift": "A",
+          "ot": 6,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_15.85h",
+            "hk_ot_on_A"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "CGP59798",
+          "name": "N.VENKANNA",
+          "in": "2026-06-10 05:06:47",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "CGP59801",
+          "name": "G.NAGA LAXMI",
+          "in": "2026-06-07 17:48:04",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "CGP59805",
+          "name": "P.SHANKAR",
+          "in": "-",
+          "out": "2026-06-07 15:32:10",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "CGP59805",
+          "name": "P.SHANKAR",
+          "in": "-",
+          "out": "2026-06-08 17:35:36",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "CGP59805",
+          "name": "P.SHANKAR",
+          "in": "-",
+          "out": "2026-06-09 16:15:16",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "CGP59810",
+          "name": "SHIVANANDA",
+          "in": "2026-06-09 06:13:56",
+          "out": "2026-06-09 21:01:14",
+          "hours": "14 hr 47 mins",
+          "shift": "A",
+          "ot": 6,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_14.79h",
+            "hk_ot_on_A"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "CGP59810",
+          "name": "SHIVANANDA",
+          "in": "2026-06-10 05:57:02",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "CGP59814",
+          "name": "T.MANGAMMA",
+          "in": "2026-06-08 21:06:00",
+          "out": "2026-06-09 06:05:32",
+          "hours": "8 hr 59 mins",
+          "shift": "A",
+          "ot": 9,
+          "status": "EL",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "single_punch",
+            "hk_ot_on_A"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "CGP59814",
+          "name": "T.MANGAMMA",
+          "in": "2026-06-10 06:21:20",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "CGP60158",
+          "name": "KALYAN NAYAK",
+          "in": "2026-06-10 05:37:45",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "CGP60160",
+          "name": "N.LAXMI",
+          "in": "2026-06-10 05:52:34",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "CGP60161",
+          "name": "MUSA MIYYA",
+          "in": "2026-06-08 20:45:07",
+          "out": "2026-06-09 06:00:02",
+          "hours": "9 hr 15 mins",
+          "shift": "A",
+          "ot": 9,
+          "status": "EL",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "single_punch",
+            "hk_ot_on_A"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "CGP60161",
+          "name": "MUSA MIYYA",
+          "in": "2026-06-10 05:57:41",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "CGP60180",
+          "name": "SK. SAHARA",
+          "in": "2026-06-10 06:13:53",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "CGP60810",
+          "name": "SAHEEN BEGUM",
+          "in": "-",
+          "out": "2026-06-09 06:07:15",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "backward_checkout_only",
+          "flags": [
+            "missing_check_in",
+            "backward_checkout"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "CGP60821",
+          "name": "G.MEENAKSHI",
+          "in": "-",
+          "out": "2026-06-07 21:13:20",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "CGP60821",
+          "name": "G.MEENAKSHI",
+          "in": "-",
+          "out": "2026-06-08 21:07:58",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "out_gate+out_gate",
+          "flags": [
+            "missing_check_in"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "CGP60821",
+          "name": "G.MEENAKSHI",
+          "in": "-",
+          "out": "2026-06-09 21:01:41",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "CGP64496",
+          "name": "G.MANGAMMA",
+          "in": "2026-06-07 20:54:39",
+          "out": "2026-06-08 06:03:58",
+          "hours": "9 hr 10 mins",
+          "shift": "A",
+          "ot": 9,
+          "status": "EL",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "single_punch",
+            "hk_ot_on_A"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "CGP64496",
+          "name": "G.MANGAMMA",
+          "in": "2026-06-10 06:16:15",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "CGP70184",
+          "name": "B ASHOK KUMAR",
+          "in": "2026-06-08 11:59:52",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "CGP70227",
+          "name": "S.SWAPNA",
+          "in": "2026-06-07 06:09:53",
+          "out": "2026-06-07 20:59:21",
+          "hours": "14 hr 49 mins",
+          "shift": "A",
+          "ot": 6,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_14.82h",
+            "hk_ot_on_A"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "CGP70227",
+          "name": "S.SWAPNA",
+          "in": "2026-06-08 06:18:41",
+          "out": "2026-06-08 21:03:26",
+          "hours": "14 hr 45 mins",
+          "shift": "A",
+          "ot": 6,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_14.75h",
+            "hk_ot_on_A"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "CGP70227",
+          "name": "S.SWAPNA",
+          "in": "2026-06-09 06:31:04",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "in_gate+in_gate",
+          "flags": [
+            "missing_check_out"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "CGP73533",
+          "name": "HUSSAIN BEE",
+          "in": "-",
+          "out": "2026-06-07 15:16:16",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "CGP73533",
+          "name": "HUSSAIN BEE",
+          "in": "-",
+          "out": "2026-06-08 15:29:40",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "CGP73533",
+          "name": "HUSSAIN BEE",
+          "in": "-",
+          "out": "2026-06-09 15:26:10",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "CGP74219",
+          "name": "TIPPANNA",
+          "in": "2026-06-07 20:48:40",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "CGP74219",
+          "name": "TIPPANNA",
+          "in": "2026-06-10 05:56:53",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "CGP78621",
+          "name": "G.SARASWATHI",
+          "in": "2026-06-07 20:19:38",
+          "out": "2026-06-08 06:02:31",
+          "hours": "9 hr 43 mins",
+          "shift": "A",
+          "ot": 9,
+          "status": "EL",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "single_punch",
+            "hk_ot_on_A"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "CGP78621",
+          "name": "G.SARASWATHI",
+          "in": "-",
+          "out": "2026-06-08 15:28:40",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "CGP85395",
+          "name": "G.SHOBHAVATHI",
+          "in": "2026-06-08 20:48:52",
+          "out": "2026-06-09 06:11:03",
+          "hours": "9 hr 22 mins",
+          "shift": "A",
+          "ot": 9,
+          "status": "EL",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "single_punch",
+            "hk_ot_on_A"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "CGP85395",
+          "name": "G.SHOBHAVATHI",
+          "in": "2026-06-10 06:23:49",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "CGP86125",
+          "name": "D  EESWAR",
+          "in": "2026-06-07 06:20:38",
+          "out": "2026-06-07 21:05:14",
+          "hours": "14 hr 44 mins",
+          "shift": "A",
+          "ot": 6,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_14.74h",
+            "hk_ot_on_A"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "CGP86125",
+          "name": "D  EESWAR",
+          "in": "-",
+          "out": "2026-06-08 21:12:13",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "out_gate+out_gate",
+          "flags": [
+            "missing_check_in"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "CGP86125",
+          "name": "D  EESWAR",
+          "in": "-",
+          "out": "2026-06-09 21:12:01",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "out_gate+out_gate",
+          "flags": [
+            "missing_check_in"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "CGP90899",
+          "name": "P. RAJU",
+          "in": "2026-06-10 11:48:12",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        }
+      ]
+    },
+    {
+      "deptName": "Gardners",
+      "deptKey": "LANDSCAPE",
+      "employees": 3,
+      "totalRows": 6,
+      "byDate": {
+        "2026-06-08": 3,
+        "2026-06-09": 1,
+        "2026-06-10": 2
+      },
+      "shiftCounts": {
+        "L": 4,
+        "G": 2
+      },
+      "otTotal": {
+        "hours": 0,
+        "rows": 0
+      },
+      "flagged": [
+        {
+          "date": "2026-06-08",
+          "emp": "10",
+          "name": "G MADDAMMA",
+          "in": "-",
+          "out": "2026-06-08 17:03:21",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "66",
+          "name": "M NARSAMMA",
+          "in": "2026-06-09 08:46:09",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "66",
+          "name": "M NARSAMMA",
+          "in": "2026-06-10 08:25:16",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "75",
+          "name": "M SAIDAPPA",
+          "in": "2026-06-10 08:40:53",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        }
+      ]
+    },
+    {
+      "deptName": "Pest Control",
+      "deptKey": "LANDSCAPE",
+      "employees": 1,
+      "totalRows": 1,
+      "byDate": {
+        "2026-06-08": 1
+      },
+      "shiftCounts": {
+        "L": 1
+      },
+      "otTotal": {
+        "hours": 0,
+        "rows": 0
+      },
+      "flagged": [
+        {
+          "date": "2026-06-08",
+          "emp": "27",
+          "name": "K HARI",
+          "in": "2026-06-08 09:48:15",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "L",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        }
+      ]
+    },
+    {
+      "deptName": "Department - Spare",
+      "deptKey": "MEP",
+      "employees": 7,
+      "totalRows": 13,
+      "byDate": {
+        "2026-06-10": 6,
+        "2026-06-09": 3,
+        "2026-06-07": 2,
+        "2026-06-08": 2
+      },
+      "shiftCounts": {
+        "G": 6,
+        "A": 7
+      },
+      "otTotal": {
+        "hours": 0,
+        "rows": 0
+      },
+      "flagged": [
+        {
+          "date": "2026-06-10",
+          "emp": "ag017913",
+          "name": "lambitchutia",
+          "in": "-",
+          "out": "2026-06-10 12:10:55",
+          "hours": "0 hr 0 mins",
+          "shift": "G",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "ag020498",
+          "name": "alok kumar singh",
+          "in": "-",
+          "out": "2026-06-10 12:09:30",
+          "hours": "0 hr 0 mins",
+          "shift": "G",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "ag029041",
+          "name": "rahulkaibartta",
+          "in": "-",
+          "out": "2026-06-10 12:07:20",
+          "hours": "0 hr 0 mins",
+          "shift": "G",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "ag029220",
+          "name": "B ANKITHA",
+          "in": "-",
+          "out": "2026-06-10 12:05:27",
+          "hours": "0 hr 0 mins",
+          "shift": "G",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "backward_checkout_only",
+          "flags": [
+            "missing_check_in",
+            "backward_checkout"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "ag029220",
+          "name": "B ANKITHA",
+          "in": "2026-06-10 12:09:50",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "G",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "AG030096",
+          "name": "PRMOD BUKHYA",
+          "in": "2026-06-07 07:49:53",
+          "out": "2026-06-07 20:08:00",
+          "hours": "12 hr 18 mins",
+          "shift": "A",
+          "ot": 0,
+          "status": "LC",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.3h"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "AG030096",
+          "name": "PRMOD BUKHYA",
+          "in": "2026-06-08 07:50:12",
+          "out": "2026-06-08 20:19:26",
+          "hours": "12 hr 29 mins",
+          "shift": "A",
+          "ot": 0,
+          "status": "LC",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.49h"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "AG030096",
+          "name": "PRMOD BUKHYA",
+          "in": "2026-06-09 07:50:55",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "A",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "AG030573",
+          "name": "JAYPRKASH",
+          "in": "2026-06-07 07:50:23",
+          "out": "2026-06-07 20:12:27",
+          "hours": "12 hr 22 mins",
+          "shift": "A",
+          "ot": 0,
+          "status": "LC",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.37h"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "AG030573",
+          "name": "JAYPRKASH",
+          "in": "2026-06-08 07:50:08",
+          "out": "2026-06-08 20:19:55",
+          "hours": "12 hr 30 mins",
+          "shift": "A",
+          "ot": 0,
+          "status": "LC",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.5h"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "AG030573",
+          "name": "JAYPRKASH",
+          "in": "2026-06-09 07:50:50",
+          "out": "2026-06-09 20:18:10",
+          "hours": "12 hr 28 mins",
+          "shift": "A",
+          "ot": 0,
+          "status": "LC",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.46h"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "AG030573",
+          "name": "JAYPRKASH",
+          "in": "2026-06-10 07:56:19",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "A",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "ag030745",
+          "name": "jagannathnayak",
+          "in": "-",
+          "out": "2026-06-10 12:08:39",
+          "hours": "0 hr 0 mins",
+          "shift": "G",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        }
+      ]
+    },
+    {
+      "deptName": "O&M",
+      "deptKey": "MEP",
+      "employees": 18,
+      "totalRows": 47,
+      "byDate": {
+        "2026-06-07": 13,
+        "2026-06-08": 14,
+        "2026-06-09": 12,
+        "2026-06-10": 8
+      },
+      "shiftCounts": {
+        "A": 12,
+        "C": 10,
+        "B": 18,
+        "G": 5,
+        "B+C": 2
+      },
+      "otTotal": {
+        "hours": 20.53,
+        "rows": 3
+      },
+      "flagged": [
+        {
+          "date": "2026-06-08",
+          "emp": "DCT01",
+          "name": "MD.KHALEEL",
+          "in": "2026-06-08 20:37:19",
+          "out": "2026-06-09 06:48:35",
+          "hours": "10 hr 11 mins",
+          "shift": "C",
+          "ot": 0,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "DCT01",
+          "name": "MD.KHALEEL",
+          "in": "2026-06-09 21:15:35",
+          "out": "2026-06-10 06:55:06",
+          "hours": "9 hr 40 mins",
+          "shift": "C",
+          "ot": 0,
+          "status": "LC",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "DCT01",
+          "name": "MD.KHALEEL",
+          "in": "2026-06-10 06:58:42",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "A",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "DCT113",
+          "name": "K.THIRUPATHI REDDY",
+          "in": "2026-06-07 13:56:57",
+          "out": "2026-06-08 07:06:39",
+          "hours": "17 hr 10 mins",
+          "shift": "B",
+          "ot": 0,
+          "status": "P",
+          "resolution": "multi_session_stitched",
+          "flags": [
+            "long_hours_17.16h",
+            "multi_session",
+            "stitched_session"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "DCT135",
+          "name": "M. AMIYA KUMAR",
+          "in": "2026-06-10 13:13:52",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "B",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "DCT164",
+          "name": "N.LAXMI NARAYANA",
+          "in": "2026-06-07 21:01:33",
+          "out": "2026-06-08 07:00:51",
+          "hours": "9 hr 59 mins",
+          "shift": "C",
+          "ot": 0,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "DCT164",
+          "name": "N.LAXMI NARAYANA",
+          "in": "2026-06-09 21:12:19",
+          "out": "2026-06-10 07:21:55",
+          "hours": "10 hr 10 mins",
+          "shift": "C",
+          "ot": 0,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "DCT192",
+          "name": "SK.KHAJA PASHA",
+          "in": "2026-06-07 21:07:50",
+          "out": "2026-06-08 06:54:04",
+          "hours": "9 hr 46 mins",
+          "shift": "C",
+          "ot": 0,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "DCT192",
+          "name": "SK.KHAJA PASHA",
+          "in": "2026-06-09 13:59:28",
+          "out": "2026-06-10 07:19:42",
+          "hours": "17 hr 20 mins",
+          "shift": "B",
+          "ot": 0,
+          "status": "P",
+          "resolution": "multi_session_stitched",
+          "flags": [
+            "long_hours_17.34h",
+            "multi_session",
+            "stitched_session"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "DCT192",
+          "name": "SK.KHAJA PASHA",
+          "in": "2026-06-10 07:22:24",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "A",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "DCT2",
+          "name": "S.M.ALI",
+          "in": "2026-06-07 21:05:42",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "C",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "DCT2",
+          "name": "S.M.ALI",
+          "in": "-",
+          "out": "2026-06-08 14:09:55",
+          "hours": "0 hr 0 mins",
+          "shift": "B",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "DCT208",
+          "name": "T.NAGARAJU",
+          "in": "-",
+          "out": "2026-06-10 12:11:33",
+          "hours": "0 hr 0 mins",
+          "shift": "G",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "DCT281",
+          "name": "P SATHISH",
+          "in": "2026-06-08 13:44:02",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "B",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "DCT281",
+          "name": "P SATHISH",
+          "in": "-",
+          "out": "2026-06-09 14:09:43",
+          "hours": "0 hr 0 mins",
+          "shift": "B",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "DCT309",
+          "name": "RAJKUMAR CHOWDARY",
+          "in": "-",
+          "out": "2026-06-10 12:32:18",
+          "hours": "0 hr 0 mins",
+          "shift": "G",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "out_gate+out_gate",
+          "flags": [
+            "missing_check_in"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "DCT320",
+          "name": "CH.ANIL KUMAR",
+          "in": "-",
+          "out": "2026-06-09 14:06:14",
+          "hours": "0 hr 0 mins",
+          "shift": "B",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "DCT361",
+          "name": "L.PRAVEEN",
+          "in": "2026-06-08 11:13:14",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "G",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "DCT361",
+          "name": "L.PRAVEEN",
+          "in": "-",
+          "out": "2026-06-10 12:30:07",
+          "hours": "0 hr 0 mins",
+          "shift": "G",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "DCT373",
+          "name": "L.DILLISWARA RAO",
+          "in": "-",
+          "out": "2026-06-09 14:00:56",
+          "hours": "0 hr 0 mins",
+          "shift": "B",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "DCT382",
+          "name": "ASUTOSH NAYAK",
+          "in": "2026-06-07 20:44:12",
+          "out": "2026-06-08 07:15:29",
+          "hours": "10 hr 31 mins",
+          "shift": "C",
+          "ot": 0,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "DCT382",
+          "name": "ASUTOSH NAYAK",
+          "in": "2026-06-08 20:21:58",
+          "out": "2026-06-09 07:29:18",
+          "hours": "11 hr 7 mins",
+          "shift": "C",
+          "ot": 0,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "DCT383",
+          "name": "MD.ZAHEER KHAN",
+          "in": "2026-06-07 20:55:34",
+          "out": "2026-06-08 06:54:49",
+          "hours": "9 hr 59 mins",
+          "shift": "C",
+          "ot": 0,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "DCT387",
+          "name": "JAGANNATH BARIK",
+          "in": "2026-06-07 21:02:03",
+          "out": "2026-06-08 07:11:28",
+          "hours": "10 hr 10 mins",
+          "shift": "C",
+          "ot": 0,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "DCT81",
+          "name": "JALADHAR PANDA",
+          "in": "2026-06-07 13:15:04",
+          "out": "2026-06-08 06:57:45",
+          "hours": "17 hr 43 mins",
+          "shift": "B",
+          "ot": 10,
+          "status": "P",
+          "resolution": "multi_session_stitched",
+          "flags": [
+            "long_hours_17.71h",
+            "multi_session",
+            "stitched_session"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "DCT81",
+          "name": "JALADHAR PANDA",
+          "in": "2026-06-09 13:10:15",
+          "out": "2026-06-10 06:55:11",
+          "hours": "17 hr 45 mins",
+          "shift": "B",
+          "ot": 10,
+          "status": "P",
+          "resolution": "multi_session_stitched",
+          "flags": [
+            "long_hours_17.75h",
+            "multi_session",
+            "stitched_session"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "DCT81",
+          "name": "JALADHAR PANDA",
+          "in": "2026-06-10 06:58:34",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "A",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        }
+      ]
+    },
+    {
+      "deptName": "Security",
+      "deptKey": "SECURITY",
+      "employees": 20,
+      "totalRows": 48,
+      "byDate": {
+        "2026-06-10": 13,
+        "2026-06-08": 12,
+        "2026-06-09": 12,
+        "2026-06-07": 11
+      },
+      "shiftCounts": {
+        "A4": 34,
+        "A4C4+C4": 2,
+        "C4": 11,
+        "G": 1
+      },
+      "otTotal": {
+        "hours": 100,
+        "rows": 23
+      },
+      "flagged": [
+        {
+          "date": "2026-06-10",
+          "emp": "AG017278",
+          "name": "RAM SINGH BEEKA",
+          "in": "-",
+          "out": "2026-06-10 00:12:29",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "AG020034",
+          "name": "KVN BHASKAR",
+          "in": "2026-06-08 08:09:45",
+          "out": "2026-06-08 21:16:53",
+          "hours": "13 hr 7 mins",
+          "shift": "A4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_13.12h"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "AG020034",
+          "name": "KVN BHASKAR",
+          "in": "2026-06-09 08:08:57",
+          "out": "2026-06-09 21:21:55",
+          "hours": "13 hr 13 mins",
+          "shift": "A4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_13.22h"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "AG020034",
+          "name": "KVN BHASKAR",
+          "in": "2026-06-10 07:55:33",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "AG020036",
+          "name": "PANDAB NAYAK",
+          "in": "2026-06-08 07:40:56",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "AG020036",
+          "name": "PANDAB NAYAK",
+          "in": "2026-06-09 07:42:15",
+          "out": "2026-06-09 20:25:52",
+          "hours": "12 hr 44 mins",
+          "shift": "A4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.73h"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "AG020036",
+          "name": "PANDAB NAYAK",
+          "in": "2026-06-10 07:39:24",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "AG020037",
+          "name": "RAVINDER TIWARI",
+          "in": "-",
+          "out": "2026-06-10 11:58:52",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "out_gate+out_gate",
+          "flags": [
+            "missing_check_in"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "AG020043",
+          "name": "PANKAJ KUMAR",
+          "in": "2026-06-07 08:03:12",
+          "out": "2026-06-07 20:08:18",
+          "hours": "12 hr 5 mins",
+          "shift": "A4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.09h"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "AG020043",
+          "name": "PANKAJ KUMAR",
+          "in": "2026-06-08 07:46:23",
+          "out": "2026-06-09 08:50:23",
+          "hours": "25 hr 4 mins",
+          "shift": "A4C4",
+          "ot": 8,
+          "status": "P",
+          "resolution": "multi_session_stitched",
+          "flags": [
+            "long_hours_25.07h",
+            "multi_session",
+            "stitched_session"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "AG020043",
+          "name": "PANKAJ KUMAR",
+          "in": "2026-06-09 19:49:31",
+          "out": "2026-06-10 08:28:35",
+          "hours": "12 hr 39 mins",
+          "shift": "C4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "extended_hours_12.65h",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "AG020069",
+          "name": "VIVEK PRADHAN",
+          "in": "2026-06-07 07:49:49",
+          "out": "2026-06-07 20:09:46",
+          "hours": "12 hr 20 mins",
+          "shift": "A4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.33h"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "AG020069",
+          "name": "VIVEK PRADHAN",
+          "in": "2026-06-08 07:50:03",
+          "out": "2026-06-08 20:19:42",
+          "hours": "12 hr 29 mins",
+          "shift": "A4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.49h"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "AG020071",
+          "name": "JANGDOW DAIMARY",
+          "in": "2026-06-07 19:44:32",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "C4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "AG020071",
+          "name": "JANGDOW DAIMARY",
+          "in": "2026-06-08 19:50:52",
+          "out": "2026-06-09 08:00:47",
+          "hours": "12 hr 10 mins",
+          "shift": "C4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "extended_hours_12.17h",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "AG020071",
+          "name": "JANGDOW DAIMARY",
+          "in": "2026-06-10 07:53:25",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "AG020073",
+          "name": "NARESH KUMAR NAYAK",
+          "in": "-",
+          "out": "2026-06-10 11:56:32",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "out_gate+out_gate",
+          "flags": [
+            "missing_check_in"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "AG020872",
+          "name": "V NAGA LAXMI",
+          "in": "2026-06-07 07:31:25",
+          "out": "2026-06-07 20:11:37",
+          "hours": "12 hr 40 mins",
+          "shift": "A4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.67h"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "AG020872",
+          "name": "V NAGA LAXMI",
+          "in": "2026-06-08 07:53:18",
+          "out": "2026-06-08 20:28:42",
+          "hours": "12 hr 35 mins",
+          "shift": "A4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.59h"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "AG020872",
+          "name": "V NAGA LAXMI",
+          "in": "2026-06-09 07:47:01",
+          "out": "2026-06-09 20:13:15",
+          "hours": "12 hr 26 mins",
+          "shift": "A4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.44h"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "AG020872",
+          "name": "V NAGA LAXMI",
+          "in": "2026-06-10 07:44:28",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "AG023846",
+          "name": "P SRI KEERTHI",
+          "in": "2026-06-07 19:48:02",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "C4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "AG023846",
+          "name": "P SRI KEERTHI",
+          "in": "2026-06-08 08:03:40",
+          "out": "2026-06-08 20:04:32",
+          "hours": "12 hr 1 mins",
+          "shift": "A4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.01h"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "AG023846",
+          "name": "P SRI KEERTHI",
+          "in": "2026-06-09 07:55:59",
+          "out": "2026-06-09 20:19:35",
+          "hours": "12 hr 23 mins",
+          "shift": "A4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.39h"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "AG023846",
+          "name": "P SRI KEERTHI",
+          "in": "2026-06-10 07:48:55",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "AG024417",
+          "name": "LAKHIKANTH SINGHA",
+          "in": "-",
+          "out": "2026-06-07 09:13:56",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "AG024417",
+          "name": "LAKHIKANTH SINGHA",
+          "in": "2026-06-08 07:58:55",
+          "out": "2026-06-08 20:27:21",
+          "hours": "12 hr 28 mins",
+          "shift": "A4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "in_gate+out_gate",
+          "flags": [
+            "extended_hours_12.47h"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "AG024420",
+          "name": "P. SATHISH",
+          "in": "-",
+          "out": "2026-06-10 11:55:30",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "backward_checkout_only",
+          "flags": [
+            "missing_check_in",
+            "backward_checkout"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "AG024420",
+          "name": "P. SATHISH",
+          "in": "2026-06-10 12:21:53",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "G",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "AG024427",
+          "name": "K BHANU PRIYA",
+          "in": "2026-06-07 19:33:28",
+          "out": "2026-06-08 08:35:26",
+          "hours": "13 hr 2 mins",
+          "shift": "C4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "extended_hours_13.03h",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "AG024427",
+          "name": "K BHANU PRIYA",
+          "in": "2026-06-08 19:57:40",
+          "out": "2026-06-09 08:49:52",
+          "hours": "12 hr 52 mins",
+          "shift": "C4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "extended_hours_12.87h",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "AG024427",
+          "name": "K BHANU PRIYA",
+          "in": "2026-06-09 19:32:53",
+          "out": "2026-06-10 08:30:53",
+          "hours": "12 hr 58 mins",
+          "shift": "C4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "extended_hours_12.97h",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "AG025403",
+          "name": "SIDDHANATH PRAJAPATHI",
+          "in": "-",
+          "out": "2026-06-07 09:18:35",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "AG025403",
+          "name": "SIDDHANATH PRAJAPATHI",
+          "in": "2026-06-09 19:52:37",
+          "out": "2026-06-10 08:24:41",
+          "hours": "12 hr 32 mins",
+          "shift": "C4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "extended_hours_12.53h",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "AG025825",
+          "name": "DAYANIDHI SAMAL",
+          "in": "-",
+          "out": "2026-06-10 12:00:14",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "AG027057",
+          "name": "M PRAVALLIKA",
+          "in": "-",
+          "out": "2026-06-09 20:19:32",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "out_gate+out_gate",
+          "flags": [
+            "missing_check_in"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "AG027057",
+          "name": "M PRAVALLIKA",
+          "in": "2026-06-10 07:53:28",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "in_gate+in_gate",
+          "flags": [
+            "missing_check_out"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "AG027796",
+          "name": "G VEERA NAGESH",
+          "in": "-",
+          "out": "2026-06-07 20:08:08",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "AG027796",
+          "name": "G VEERA NAGESH",
+          "in": "2026-06-08 08:00:11",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "AG027796",
+          "name": "G VEERA NAGESH",
+          "in": "2026-06-09 07:56:23",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "AG027929",
+          "name": "DEEPAK KUMAR",
+          "in": "2026-06-08 03:47:00",
+          "out": "2026-06-09 08:49:27",
+          "hours": "29 hr 2 mins",
+          "shift": "A4C4",
+          "ot": 8,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "long_hours_29.04h",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-10",
+          "emp": "AG027929",
+          "name": "DEEPAK KUMAR",
+          "in": "-",
+          "out": "2026-06-10 08:25:10",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "AG028846",
+          "name": "MANOJ KUMAR PATIKA",
+          "in": "-",
+          "out": "2026-06-07 22:53:07",
+          "hours": "0 hr 0 mins",
+          "shift": "A4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_out_gate",
+          "flags": [
+            "missing_check_in",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-07",
+          "emp": "AG028848",
+          "name": "M DILIP KUMAR",
+          "in": "2026-06-07 19:53:40",
+          "out": "-",
+          "hours": "0 hr 0 mins",
+          "shift": "C4",
+          "ot": 0,
+          "status": "Missing Punch",
+          "resolution": "single_in_gate",
+          "flags": [
+            "missing_check_out",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-08",
+          "emp": "AG028848",
+          "name": "M DILIP KUMAR",
+          "in": "2026-06-08 19:52:26",
+          "out": "2026-06-09 08:45:42",
+          "hours": "12 hr 53 mins",
+          "shift": "C4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "extended_hours_12.89h",
+            "single_punch"
+          ]
+        },
+        {
+          "date": "2026-06-09",
+          "emp": "AG028848",
+          "name": "M DILIP KUMAR",
+          "in": "2026-06-09 20:02:28",
+          "out": "2026-06-10 08:24:13",
+          "hours": "12 hr 22 mins",
+          "shift": "C4",
+          "ot": 4,
+          "status": "P",
+          "resolution": "cross_midnight_c",
+          "flags": [
+            "extended_hours_12.36h",
+            "single_punch"
+          ]
+        }
+      ]
+    }
+  ]
+}

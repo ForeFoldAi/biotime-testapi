@@ -14,7 +14,7 @@ Node.js + Express backend for attendance and overtime calculation using BioTime 
   - Working hours = checkout - checkin
 - Shift detection with overnight shift support
 - Department-wise rule engine:
-  - MEP / O&M
+  - MEP (default)
   - Security
   - Housekeeping
   - Landscape / Pest Control

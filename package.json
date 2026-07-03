@@ -7,7 +7,7 @@
     "start": "npm run build:ui && electron electron/main.js",
     "server": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node --test src/utils/*.test.js",
+    "test": "node --test src/utils/*.test.js src/rules/housekeepingRules.test.js src/rules/mepRules.test.js src/processors/*.test.js",
     "test:punches": "node scripts/fetchPunchTest.js",
     "build:ui": "vite build --config ui/vite.config.mjs",
     "dev:ui": "vite --config ui/vite.config.mjs",
